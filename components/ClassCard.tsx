@@ -5,9 +5,11 @@ interface ClassCardProps {
   session: ClassSession;
   status: 'active' | 'upcoming' | 'completed' | 'future';
   isHero?: boolean;
+  onEditNote: (session: ClassSession) => void;
+  hasNote?: boolean;
 }
 
-export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = false }) => {
+export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = false, onEditNote, hasNote }) => {
   // Styles based on status
   const getStatusStyles = () => {
     switch (status) {
@@ -35,6 +37,20 @@ export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = 
     }
   };
 
+  const renderNoteButton = (isContrast = false) => (
+    <button 
+      onClick={(e) => { e.stopPropagation(); onEditNote(session); }}
+      className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+        hasNote 
+          ? (isContrast ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200')
+          : (isContrast ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-gray-100 text-gray-500 hover:bg-gray-200')
+      }`}
+    >
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+      {hasNote ? 'Edit Notes' : 'Add Note'}
+    </button>
+  );
+
   if (isHero) {
     return (
       <div className={`rounded-xl shadow-lg p-6 md:p-8 transition-all duration-300 ${status === 'active' ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white scale-105' : 'bg-white border border-gray-100'}`}>
@@ -53,8 +69,11 @@ export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = 
               {session.startTime} - {session.endTime}
             </h2>
           </div>
-          <div className={`px-3 py-1 rounded-lg text-sm font-medium ${status === 'active' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
-            {session.type}
+          <div className="flex flex-col items-end gap-2">
+            <div className={`px-3 py-1 rounded-lg text-sm font-medium ${status === 'active' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                {session.type}
+            </div>
+            {renderNoteButton(status === 'active')}
           </div>
         </div>
         
@@ -90,9 +109,12 @@ export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = 
           <h3 className="text-lg font-bold text-gray-800">{session.subject}</h3>
           <p className="text-sm text-gray-600">{session.batch} • {session.type}</p>
         </div>
-        <div className="text-right pl-4">
-          <p className="text-xs text-gray-400 uppercase">Room</p>
-          <p className="text-xl font-bold text-indigo-600">{session.room}</p>
+        <div className="flex flex-col items-end justify-between h-full pl-4 gap-2">
+          <div className="text-right">
+            <p className="text-xs text-gray-400 uppercase">Room</p>
+            <p className="text-xl font-bold text-indigo-600">{session.room}</p>
+          </div>
+          {renderNoteButton()}
         </div>
       </div>
     </div>

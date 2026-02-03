@@ -52,3 +52,44 @@ export const getClassStatus = (cls: ClassSession, currentMinutes: number) => {
   }
   return 'completed';
 };
+
+export const getUpcomingDates = (dayName: string, count: number = 8): Date[] => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const targetDayIndex = days.indexOf(dayName);
+  
+  if (targetDayIndex === -1) return [];
+
+  const dates: Date[] = [];
+  const date = new Date();
+  // Normalize to noon to avoid DST/Timezone midnight issues causing date shifts
+  date.setHours(12, 0, 0, 0); 
+  
+  // Find next occurrence (or today if match)
+  while (date.getDay() !== targetDayIndex) {
+    date.setDate(date.getDate() + 1);
+  }
+
+  // Generate count dates
+  for (let i = 0; i < count; i++) {
+    dates.push(new Date(date));
+    date.setDate(date.getDate() + 7);
+  }
+
+  return dates;
+};
+
+// Returns YYYY-MM-DD for storage/comparison
+export const toISODate = (date: Date): string => {
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset*60*1000));
+    return localDate.toISOString().split('T')[0];
+};
+
+// Returns readable string like "12 Feb 2025"
+export const toReadableDate = (date: Date): string => {
+    return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+};

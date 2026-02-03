@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
 import { Login } from './components/Login';
 import { Dashboard } from './components/Dashboard';
-import { AppState } from './types';
+import { AppState, TeacherProfile } from './types';
 
 const App: React.FC = () => {
-  // Check localStorage for persisted session (optional, but good UX)
   const [appState, setAppState] = useState<AppState>(AppState.LOGIN);
+  const [currentTeacher, setCurrentTeacher] = useState<TeacherProfile | null>(null);
 
-  const handleLogin = () => {
+  const handleLogin = (teacher: TeacherProfile) => {
+    setCurrentTeacher(teacher);
     setAppState(AppState.DASHBOARD);
   };
 
   const handleLogout = () => {
+    setCurrentTeacher(null);
     setAppState(AppState.LOGIN);
   };
 
   return (
     <>
       {appState === AppState.LOGIN && <Login onLogin={handleLogin} />}
-      {appState === AppState.DASHBOARD && <Dashboard onLogout={handleLogout} />}
+      {appState === AppState.DASHBOARD && currentTeacher && (
+        <Dashboard teacher={currentTeacher} onLogout={handleLogout} />
+      )}
     </>
   );
 };
