@@ -6,10 +6,18 @@ interface ClassCardProps {
   status: 'active' | 'upcoming' | 'completed' | 'future';
   isHero?: boolean;
   onEditNote: (session: ClassSession) => void;
+  onFindRoom: (session: ClassSession) => void; // New Prop
   hasNote?: boolean;
 }
 
-export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = false, onEditNote, hasNote }) => {
+export const ClassCard: React.FC<ClassCardProps> = ({ 
+  session, 
+  status, 
+  isHero = false, 
+  onEditNote, 
+  onFindRoom, // Destructure
+  hasNote 
+}) => {
   // Styles based on status
   const getStatusStyles = () => {
     switch (status) {
@@ -51,6 +59,22 @@ export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = 
     </button>
   );
 
+  // New Button for finding a room
+  const renderFindRoomButton = (isContrast = false) => (
+    <button 
+      onClick={(e) => { e.stopPropagation(); onFindRoom(session); }}
+      className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ml-2 ${
+        isContrast 
+          ? 'bg-white/20 text-white hover:bg-white/30' 
+          : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+      }`}
+      title="Find empty room for this slot"
+    >
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+      Find Room
+    </button>
+  );
+
   if (isHero) {
     return (
       <div className={`rounded-xl shadow-lg p-6 md:p-8 transition-all duration-300 ${status === 'active' ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white scale-105' : 'bg-white border border-gray-100'}`}>
@@ -73,7 +97,10 @@ export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = 
             <div className={`px-3 py-1 rounded-lg text-sm font-medium ${status === 'active' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
                 {session.type}
             </div>
-            {renderNoteButton(status === 'active')}
+            <div className="flex">
+                {renderNoteButton(status === 'active')}
+                {renderFindRoomButton(status === 'active')}
+            </div>
           </div>
         </div>
         
@@ -114,7 +141,10 @@ export const ClassCard: React.FC<ClassCardProps> = ({ session, status, isHero = 
             <p className="text-xs text-gray-400 uppercase">Room</p>
             <p className="text-xl font-bold text-indigo-600">{session.room}</p>
           </div>
-          {renderNoteButton()}
+          <div className="flex flex-col gap-1 items-end">
+             {renderNoteButton()}
+             {renderFindRoomButton()}
+          </div>
         </div>
       </div>
     </div>
