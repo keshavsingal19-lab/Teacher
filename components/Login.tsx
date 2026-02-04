@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { TEACHERS } from '../constants';
 import { TeacherProfile } from '../types';
+// NOTICE: We removed "import { TEACHERS } from '../constants';"
 
 interface LoginProps {
   onLogin: (teacher: TeacherProfile) => void;
@@ -9,20 +9,32 @@ interface LoginProps {
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalizedPasscode = passcode.trim(); // Case sensitive as per IDs, or usually uppercase
-    
-    // Check if passcode exists in our constants
-    // For better UX, we can try case-insensitive check
-    const teacherKey = Object.keys(TEACHERS).find(k => k.toLowerCase() === normalizedPasscode.toLowerCase());
-    
-    if (teacherKey) {
-      onLogin(TEACHERS[teacherKey]);
-    } else {
-      setError('Invalid Access Code. Please check your timetable footer.');
-      setPasscode('');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      // Securely ask the server for the schedule
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        onLogin(data.teacher);
+      } else {
+        setError('Invalid Access Code. Please check your timetable footer.');
+      }
+    } catch (err) {
+      setError('Connection failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,9 +60,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 type="password"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors outline-none"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 outline-none"
                 placeholder=""
                 autoFocus
+                disabled={isLoading}
                 />
             </div>
             
@@ -63,14 +76,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             <button
                 type="submit"
+                disabled={isLoading}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-colors shadow-md hover:shadow-lg transform active:scale-95 duration-150"
             >
-                View My Timetable
+                {isLoading ? 'Verifying...' : 'View My Timetable'}
             </button>
             </form>
-        </div>
-        <div className="bg-gray-50 p-4 text-center border-t border-gray-100">
-            <p className="text-xs text-gray-400">Timetable 2025 - 2026</p>
         </div>
       </div>
     </div>
