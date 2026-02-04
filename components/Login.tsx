@@ -21,7 +21,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (teacherKey) {
       onLogin(TEACHERS[teacherKey]);
     } else {
-      setError('Invalid Access Code. Please check your timetable footer.');
+      setError('Invalid Access Code');
       setPasscode('');
     }
   };
