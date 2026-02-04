@@ -11,6 +11,7 @@ import {
   toReadableDate 
 } from '../utils/timeUtils';
 import { ClassCard } from './ClassCard';
+import { saveNoteToCloud, loadNotesFromCloud } from '../utils/db';
 
 interface DashboardProps {
   teacher: TeacherProfile;
@@ -28,6 +29,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
 
   // Notes state
   const [notes, setNotes] = useState<ClassNote[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Edit State
   const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
@@ -39,19 +42,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
   // Delete State (Custom UI instead of window.confirm)
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
-  // Load notes from local storage on mount
+  // Load notes using Cloudflare D1
   useEffect(() => {
-    const savedNotes = localStorage.getItem(`notes_${teacher.id}_v2`); // New key for array structure
-    if (savedNotes) {
-        try {
-            const parsed = JSON.parse(savedNotes);
-            if (Array.isArray(parsed)) {
-              setNotes(parsed);
-            }
-        } catch (e) {
-            console.error("Failed to parse notes", e);
+    let mounted = true;
+    const loadNotes = async () => {
+        setIsLoadingNotes(true);
+        const storedCode = localStorage.getItem('teacherCode') || teacher.id;
+        const rawData = await loadNotesFromCloud(storedCode);
+        
+        if (mounted) {
+            // D1 returns rows with 'content' string. We parse them and filter out "deleted" ones.
+            const parsedNotes: ClassNote[] = rawData
+                .map((row: any) => {
+                    try {
+                        return JSON.parse(row.content);
+                    } catch (e) {
+                        console.error('Failed to parse note', e);
+                        return null;
+                    }
+                })
+                .filter((n: any) => n !== null && !n.isDeleted); // Filter out soft-deleted notes
+            
+            setNotes(parsedNotes);
+            setIsLoadingNotes(false);
         }
-    }
+    };
+    loadNotes();
+    return () => { mounted = false; };
   }, [teacher.id]);
 
   // Update time every second
@@ -97,16 +114,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
     }
   };
 
-  const handleSaveNote = () => {
+  // Helper to ensure links have protocol
+  const ensureProtocol = (url: string) => {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
+  const handleSaveNote = async () => {
     if (!editingSession || !selectedDate) return;
     
     // Remove existing note for this session+date if it exists
     const otherNotes = notes.filter(n => !(n.sessionId === editingSession.id && n.targetDate === selectedDate));
     
     let updatedNotes = [...otherNotes];
+    let newNote: ClassNote | null = null;
     
     if (noteText.trim() || noteLink.trim()) {
-        const newNote: ClassNote = {
+        newNote = {
             id: `${editingSession.id}_${selectedDate}`,
             sessionId: editingSession.id,
             targetDate: selectedDate,
@@ -115,27 +142,52 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
             timeSlot: `${editingSession.startTime} - ${editingSession.endTime}`,
             batch: editingSession.batch,
             text: noteText,
-            link: noteLink,
+            link: ensureProtocol(noteLink),
             createdAt: Date.now()
         };
         updatedNotes.push(newNote);
     }
 
-    setNotes(updatedNotes);
-    localStorage.setItem(`notes_${teacher.id}_v2`, JSON.stringify(updatedNotes));
+    setNotes(updatedNotes); // Optimistic update
     setEditingSession(null);
+    
+    setIsSaving(true);
+    // Persist to Cloudflare D1
+    const storedCode = localStorage.getItem('teacherCode') || teacher.id;
+    if (newNote) {
+        // Upsert the note content
+        await saveNoteToCloud(storedCode, newNote.id, JSON.stringify(newNote));
+    } else {
+        // If content is empty, user likely cleared it. 
+        // Note: Logic above only creates newNote if text/link exists. 
+        // If they cleared it, we need to handle "delete" via update.
+        // But in this logic, we only push if text exists. 
+        // If the user CLEARED the form, we should probably soft-delete the existing entry if it existed.
+        const noteId = `${editingSession.id}_${selectedDate}`;
+        // We send a "deleted" flag because our backend logic is upsert only.
+        await saveNoteToCloud(storedCode, noteId, JSON.stringify({ isDeleted: true }));
+    }
+    setIsSaving(false);
   };
 
   const requestDelete = (noteId: string) => {
     setDeletingNoteId(noteId);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingNoteId) {
+        const noteToDelete = notes.find(n => n.id === deletingNoteId);
         const updatedNotes = notes.filter(n => n.id !== deletingNoteId);
-        setNotes(updatedNotes);
-        localStorage.setItem(`notes_${teacher.id}_v2`, JSON.stringify(updatedNotes));
+        setNotes(updatedNotes); // Optimistic
         setDeletingNoteId(null);
+        
+        if (noteToDelete) {
+            setIsSaving(true);
+            const storedCode = localStorage.getItem('teacherCode') || teacher.id;
+            // Soft delete in D1
+            await saveNoteToCloud(storedCode, noteToDelete.id, JSON.stringify({ ...noteToDelete, isDeleted: true }));
+            setIsSaving(false);
+        }
     }
   };
 
@@ -291,31 +343,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
                   {note.text}
               </div>
               {note.link && (
-                 <a
-    href={
-      /^https?:\/\//i.test(note.link)
-        ? note.link
-        : `https://${note.link}`
-    }
-    target="_blank"
-    rel="noopener noreferrer"
-    className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-indigo-600 hover:underline"
-  >
-    <svg
-      className="w-3 h-3"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-      />
-    </svg>
-    View Attachment
-  </a>
+                 <a href={ensureProtocol(note.link)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-indigo-600 hover:underline">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    View Attachment
+                 </a>
               )}
            </div>
         ))}
@@ -323,21 +354,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
     );
   };
 
+  if (isLoadingNotes) {
+    return (
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500 font-medium">Syncing your schedule...</p>
+        </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 pb-12 relative">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
+      <header className="bg-white shadow-sm sticky top-0 z-40 transition-colors">
         <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-lg font-bold text-gray-800">{teacher.name}</h1>
             <p className="text-xs text-gray-500">{teacher.department}</p>
           </div>
-          <button 
-            onClick={onLogout}
-            className="text-sm text-red-500 hover:text-red-700 font-medium"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+             {isSaving && (
+                 <span className="text-xs text-indigo-500 font-medium flex items-center gap-1 animate-pulse">
+                    <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Syncing...
+                 </span>
+             )}
+             <button 
+                onClick={onLogout}
+                className="text-sm text-red-500 hover:text-red-700 font-medium"
+             >
+                Logout
+             </button>
+          </div>
         </div>
       </header>
 
@@ -534,9 +582,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
                         </button>
                         <button 
                             onClick={handleSaveNote}
-                            className="flex-1 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 font-medium text-sm transition-colors shadow-md"
+                            disabled={isSaving}
+                            className="flex-1 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 font-medium text-sm transition-colors shadow-md disabled:bg-indigo-400"
                         >
-                            Save Note
+                            {isSaving ? 'Saving...' : 'Save Note'}
                         </button>
                     </div>
                 </div>
