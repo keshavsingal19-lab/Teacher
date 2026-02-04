@@ -7,7 +7,7 @@ export const saveNoteToCloud = async (code: string, fieldId: string, content: st
      headers: { 'Content-Type': 'application/json' },
      body: JSON.stringify({ code, fieldId, content })
    });
-   // Optional: console.log(`Saved note for ${fieldId}`);
+  //  Optional: console.log(`Saved note for ${fieldId}`);
  } catch (error) {
    console.error("Failed to save note", error);
  }

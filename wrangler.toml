@@ -1,0 +1,8 @@
+name = "teacher-assist"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-02-04"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "school-db"
+database_id = "350eac3e-ac57-484d-b918-ed5a49603ac3"

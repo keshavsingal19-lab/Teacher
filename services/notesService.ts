@@ -4,7 +4,7 @@ import { ClassNote } from '../types';
 // To enable cross-device sync, you need a simple backend that supports GET and POST JSON data.
 // For example, you could use a service like simplejsonbin.com or your own server.
 const CLOUD_SYNC_ENABLED = false; // Set to true after configuring API_URL
-const API_URL = 'https://api.your-backend.com/notes';
+const API_URL = 'https://api.your-backend.com/notes'; //placeholder
 
 const STORAGE_KEY_PREFIX = 'notes_v2_';
 
