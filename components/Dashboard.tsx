@@ -381,7 +381,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
         </div>
       </header>
 
-      {/* ... [Alerts section unchanged] ... */}
+      {/* --- IMPORTANT ALERTS SECTION --- */}
+      {notesForToday.length > 0 && (
+        <div className="max-w-3xl mx-auto px-4 mt-6">
+          <div className="space-y-3">
+            {notesForToday.map((note) => (
+              <div key={note.id} className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm flex items-start justify-between animate-[fadeIn_0.5s_ease-out]">
+                <div className="w-full">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                      Important
+                    </span>
+                    <span className="text-xs font-semibold text-gray-500 uppercase">
+                      {note.batch} • {note.timeSlot}
+                    </span>
+                  </div>
+                  <p className="text-gray-900 font-medium text-sm mt-1">{note.text}</p>
+                  
+                  {note.link && (
+                     <a href={note.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        View Attachment
+                     </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <main className="max-w-3xl mx-auto px-4 pt-6 space-y-6">
         
