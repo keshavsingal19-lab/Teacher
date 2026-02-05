@@ -85,7 +85,7 @@ const CountdownTimer = () => {
       interval = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
-      alert("Time is up!"); // Simple alert for ease of implementation
+      alert("Time is up!"); 
     }
     return () => clearInterval(interval);
   }, [isRunning, timeLeft]);
