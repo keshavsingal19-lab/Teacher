@@ -1,3 +1,4 @@
+import { Utilities } from './Utilities';
 import React, { useState, useEffect } from 'react';
 import { TeacherProfile, ClassSession, ClassNote } from '../types';
 import { 
@@ -20,7 +21,7 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-type ViewState = 'LIVE' | 'FULL_WEEK' | 'NOTES';
+type ViewState = 'LIVE' | 'FULL_WEEK' | 'NOTES' | 'UTILITIES';
 
 export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
   const [currentTime, setCurrentTime] = useState<string>(getFormattedTime());
@@ -413,6 +414,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
 
       <main className="max-w-3xl mx-auto px-4 pt-6 space-y-6">
         
+        <div className="flex bg-gray-200 p-1 rounded-lg">
+        <button onClick={() => setView('LIVE')} className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${view === 'LIVE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Live View</button>
+        <button onClick={() => setView('FULL_WEEK')} className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${view === 'FULL_WEEK' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Full Week</button>
+        <button onClick={() => setView('NOTES')} className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${view === 'NOTES' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>My Notes</button>
+        {/* NEW BUTTON ADDED BELOW */}
+        <button onClick={() => setView('UTILITIES')} className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${view === 'UTILITIES' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Utilities</button>
+       </div>
         <div className="flex justify-between items-end">
           <div>
             <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{getFormattedDate()}</p>
@@ -475,6 +483,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
                 </div>
                 {renderNotesView()}
             </section>
+        )}
+
+        {view === 'UTILITIES' && (
+           <section className="animate-[fadeIn_0.2s_ease-out]">
+              <div className="mb-4">
+                  <h3 className="text-gray-500 font-semibold text-sm uppercase tracking-wider">Classroom Utilities</h3>
+              </div>
+              <Utilities />
+           </section>
         )}
 
       </main>
