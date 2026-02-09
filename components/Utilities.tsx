@@ -1,29 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { TeacherProfile } from '../types';
 
-export const Utilities: React.FC = () => {
-  const [activeTool, setActiveTool] = useState<'STOPWATCH' | 'TIMER' | 'GAMES'>('STOPWATCH');
+export const Utilities: React.FC<{ teacher: TeacherProfile }> = ({ teacher }) => {
+  const [activeTool, setActiveTool] = useState<'STOPWATCH' | 'TIMER' | 'GAMES' | 'SETTINGS'>('STOPWATCH');
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
       {/* Utilities Navigation */}
-      <div className="flex border-b border-gray-100">
+      <div className="flex border-b border-gray-100 overflow-x-auto">
         <button 
           onClick={() => setActiveTool('STOPWATCH')}
-          className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'STOPWATCH' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+          className={`flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'STOPWATCH' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
         >
           Stopwatch
         </button>
         <button 
           onClick={() => setActiveTool('TIMER')}
-          className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'TIMER' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+          className={`flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'TIMER' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
         >
           Timer
         </button>
         <button 
           onClick={() => setActiveTool('GAMES')}
-          className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'GAMES' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+          className={`flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'GAMES' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
         >
           Games
+        </button>
+        <button 
+          onClick={() => setActiveTool('SETTINGS')}
+          className={`flex-1 py-4 text-xs md:text-sm font-bold uppercase tracking-wider transition-colors ${activeTool === 'SETTINGS' ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          Settings
         </button>
       </div>
 
@@ -31,6 +38,7 @@ export const Utilities: React.FC = () => {
         {activeTool === 'STOPWATCH' && <Stopwatch />}
         {activeTool === 'TIMER' && <CountdownTimer />}
         {activeTool === 'GAMES' && <GamesMenu />}
+        {activeTool === 'SETTINGS' && <SettingsMenu teacher={teacher} />}
       </div>
     </div>
   );
@@ -157,6 +165,86 @@ const GamesMenu = () => {
       </button>
     </div>
   );
+};
+
+// -- Settings Menu --
+const SettingsMenu = ({ teacher }: { teacher: TeacherProfile }) => {
+    const [currentPass, setCurrentPass] = useState('');
+    const [newPass, setNewPass] = useState('');
+    const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
+    const [msg, setMsg] = useState('');
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('LOADING');
+        setMsg('');
+
+        try {
+            const response = await fetch('/api/change_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    teacherId: teacher.id, 
+                    currentPasscode: currentPass, 
+                    newPasscode: newPass 
+                })
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                setStatus('SUCCESS');
+                setMsg('Password changed successfully! The old access code is now invalid.');
+                setCurrentPass('');
+                setNewPass('');
+            } else {
+                setStatus('ERROR');
+                setMsg(data.error || 'Failed to change password');
+            }
+        } catch (error) {
+            setStatus('ERROR');
+            setMsg('Connection failed.');
+        }
+    };
+
+    return (
+        <div className="w-full max-w-sm bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <h3 className="font-bold text-gray-800 mb-4 text-center">Change Access Code</h3>
+            
+            {status === 'SUCCESS' && <div className="mb-4 p-3 bg-green-100 text-green-700 text-sm rounded">{msg}</div>}
+            {status === 'ERROR' && <div className="mb-4 p-3 bg-red-100 text-red-700 text-sm rounded">{msg}</div>}
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Current Password</label>
+                    <input 
+                        type="password" 
+                        value={currentPass}
+                        onChange={(e) => setCurrentPass(e.target.value)}
+                        className="w-full p-2 rounded border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">New Password</label>
+                    <input 
+                        type="password" 
+                        value={newPass}
+                        onChange={(e) => setNewPass(e.target.value)}
+                        className="w-full p-2 rounded border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-500"
+                        required
+                        minLength={4}
+                    />
+                </div>
+                <button 
+                    type="submit" 
+                    disabled={status === 'LOADING'}
+                    className="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow hover:bg-indigo-700 disabled:bg-indigo-400"
+                >
+                    {status === 'LOADING' ? 'Updating...' : 'Update Password'}
+                </button>
+            </form>
+        </div>
+    );
 };
 
 // -- Simple Games --

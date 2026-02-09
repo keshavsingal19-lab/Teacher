@@ -484,7 +484,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
               <div className="mb-4">
                   <h3 className="text-gray-500 font-semibold text-sm uppercase tracking-wider">Classroom Utilities</h3>
               </div>
-              <Utilities />
+              <Utilities teacher={teacher} />
            </section>
         )}
 
