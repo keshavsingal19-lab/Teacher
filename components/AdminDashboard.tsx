@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TeacherProfile } from '../types';
 
 interface AdminDashboardProps {
-  allTeachers: any; // Changed to 'any' to fix the TypeScript error
+  allTeachers: any; 
   onLogout: () => void;
 }
 
@@ -11,7 +11,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch current absences from the API
+  // Fetch current absences
   useEffect(() => {
     const fetchAbsences = async () => {
       try {
@@ -39,9 +39,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
         setAbsentIds(prev => [...prev, teacherId]);
     }
 
-    // 2. Send to Server
+    // 2. Send to Server with ERROR CHECKING
     try {
-        await fetch('/api/absences', {
+        const response = await fetch('/api/absences', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -49,15 +49,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
                 action: currentStatus ? 'REMOVE' : 'MARK' 
             })
         });
-    } catch (e) {
-        alert("Failed to sync with server. Please check connection.");
-        // Revert on failure
+
+        const data = await response.json();
+
+        // If server says "success: false" or returns error, REVERT changes
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || "Server failed to save");
+        }
+
+    } catch (e: any) {
+        alert(`Failed to save: ${e.message}`);
+        // Revert UI on failure
         if (currentStatus) setAbsentIds(prev => [...prev, teacherId]);
         else setAbsentIds(prev => prev.filter(id => id !== teacherId));
     }
   };
 
-  // Safe conversion of the teachers object to an array
   const teachersList = Object.values(allTeachers || {}) as TeacherProfile[];
   
   const sortedTeachers = teachersList.sort((a, b) => 
@@ -71,7 +78,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      {/* Header */}
       <header className="bg-gray-900 text-white shadow-lg sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
@@ -85,12 +91,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
       </header>
 
       <main className="max-w-4xl mx-auto px-6 pt-8">
-        
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
             <h2 className="text-lg font-bold text-gray-800 mb-2">Manage Daily Attendance</h2>
             <p className="text-sm text-gray-500 mb-6">
-                Mark teachers as absent for today ({new Date().toLocaleDateString()}). 
-                This will automatically free up their rooms in the Room Finder. 
+                Mark teachers as absent for today. 
+                This frees up their rooms in the Room Finder. 
                 <span className="text-orange-600 font-semibold"> Resets automatically at midnight IST.</span>
             </p>
 
@@ -133,11 +138,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
                             </div>
                         )
                     })}
-                    {filteredTeachers.length === 0 && (
-                      <div className="col-span-full text-center text-gray-400 py-4">
-                        No teachers found matching "{searchTerm}"
-                      </div>
-                    )}
                 </div>
             )}
         </div>
