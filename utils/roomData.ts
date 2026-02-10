@@ -48,8 +48,13 @@ export interface RoomData {
   emptySlots: RoomSchedule;
 }
 
-// --- ROOM DATA (Sourced from your Timetable Git Repo) ---
-export const ROOMS_DATA: RoomData[] = [
+// Result interface for the UI
+export interface RoomSearchResult extends RoomData {
+  isFreed: boolean; // New flag
+}
+
+// --- STATIC ROOM DATA ---
+const EXISTING_ROOMS: RoomData[] = [
   { id: "CL1", name: "CL1", type: "Lab", emptySlots: { "Monday": [], "Tuesday": [], "Wednesday": [7, 8], "Thursday": [], "Friday": [7, 8], "Saturday": [0, 3, 4, 5, 6, 7, 8] } },
   { id: "CL2", name: "CL2", type: "Lab", emptySlots: { "Monday": [], "Tuesday": [], "Wednesday": [5, 6, 7, 8], "Thursday": [], "Friday": [7, 8], "Saturday": [0, 3, 4, 5, 6, 7, 8] } },
   { id: "CLIB", name: "CLIB", type: "Lab", emptySlots: { "Monday": [], "Tuesday": [6, 7], "Wednesday": [5, 6, 7, 8], "Thursday": [4], "Friday": [5, 6, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
@@ -92,7 +97,10 @@ export const ROOMS_DATA: RoomData[] = [
   { id: "SCR1", name: "SCR1", type: "Seminar Room", emptySlots: { "Monday": [3, 7, 8], "Tuesday": [8], "Wednesday": [6, 7, 8], "Thursday": [7, 8], "Friday": [6, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
   { id: "SCR2", name: "SCR2", type: "Seminar Room", emptySlots: { "Monday": [0, 1, 3, 4, 5, 6, 7, 8], "Tuesday": [7, 8], "Wednesday": [6, 7, 8], "Thursday": [0, 1, 7, 8], "Friday": [1, 2, 6, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
   { id: "SCR3", name: "SCR3", type: "Seminar Room", emptySlots: { "Monday": [0, 1, 2, 3, 4, 5, 8], "Tuesday": [7, 8], "Wednesday": [6, 7, 8], "Thursday": [1], "Friday": [1, 2, 5, 6, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
-  { id: "SCR4", name: "SCR4", type: "Seminar Room", emptySlots: { "Monday": [0, 1, 2, 3, 4, 7, 8], "Tuesday": [], "Wednesday": [7, 8], "Thursday": [1, 3], "Friday": [0, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
+  { id: "SCR4", name: "SCR4", type: "Seminar Room", emptySlots: { "Monday": [0, 1, 2, 3, 4, 7, 8], "Tuesday": [], "Wednesday": [7, 8], "Thursday": [1, 3], "Friday": [0, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } }
+];
+
+const TUTORIAL_ROOMS: RoomData[] = [
   { id: "T1", name: "T1", type: "Tutorial Room", emptySlots: { "Monday": [0, 1, 3, 4, 5, 6, 7, 8], "Tuesday": [4, 5, 6, 7, 8], "Wednesday": [4, 5, 6, 7, 8], "Thursday": [3, 4, 5, 6, 7, 8], "Friday": [4, 5, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
   { id: "T2", name: "T2", type: "Tutorial Room", emptySlots: { "Monday": [0, 1, 3, 4, 5, 6, 7, 8], "Tuesday": [5, 6, 7, 8], "Wednesday": [5, 6, 7, 8], "Thursday": [5, 6, 7, 8], "Friday": [3, 4, 5, 6, 7, 8], "Saturday": [0, 1, 3, 4, 5, 6, 7, 8] } },
   { id: "T3", name: "T3", type: "Tutorial Room", emptySlots: { "Monday": [0, 1, 5, 6, 7, 8], "Tuesday": [0, 4, 5, 6, 7, 8], "Wednesday": [4, 5, 6, 7, 8], "Thursday": [4, 5, 6, 7, 8], "Friday": [4, 5, 6, 7, 8], "Saturday": [0, 1, 2, 3, 4, 5, 6, 7, 8] } },
@@ -140,7 +148,8 @@ export const ROOMS_DATA: RoomData[] = [
   { id: "T54", name: "T54", type: "Tutorial Room", emptySlots: { "Monday": [0, 1, 4, 5, 6, 7, 8], "Tuesday": [0, 1, 4, 5, 6, 7, 8], "Wednesday": [0, 1, 4, 5, 6, 7, 8], "Thursday": [0, 1, 4, 5, 6, 7, 8], "Friday": [0, 1, 4, 5, 6, 7, 8], "Saturday": [0, 1, 3, 4, 5, 6, 7, 8] } }
 ];
 
-// --- DYNAMIC CALCULATOR ---
+const ROOMS_DATA = [...EXISTING_ROOMS, ...TUTORIAL_ROOMS];
+
 export const getAvailableRooms = (
   selectedDay: DayOfWeek, 
   selectedTimeIndex: number,
@@ -148,12 +157,11 @@ export const getAvailableRooms = (
   filterType: string = 'All',
   absentTeacherIds: string[] = [],
   allTeachers: Record<string, TeacherProfile> = {}
-): RoomData[] => {
+): RoomSearchResult[] => {
   
-  // 1. Clone the static data to avoid permanent mutation
-  const dynamicRooms = JSON.parse(JSON.stringify(ROOMS_DATA));
+  const dynamicRooms: RoomSearchResult[] = ROOMS_DATA.map(room => ({ ...room, isFreed: false }));
 
-  // 2. Process Absences to free up rooms
+  // Process Absences
   if (absentTeacherIds.length > 0) {
     absentTeacherIds.forEach(tId => {
         const teacher = allTeachers[tId];
@@ -161,9 +169,8 @@ export const getAvailableRooms = (
             teacher.schedule[selectedDay].forEach(session => {
                 const timeIndex = getTimeSlotIndex(session.startTime);
                 
-                // Find the room to free
-                // Matches "R22" against "R22" or "R22-A"
-                const roomToFree = dynamicRooms.find((r: RoomData) => 
+                // Find room. Match ID or Name or Prefix (e.g. T54-1 matches T54)
+                const roomToFree = dynamicRooms.find((r) => 
                     session.room === r.id || session.room.startsWith(r.id + '-')
                 );
 
@@ -171,9 +178,20 @@ export const getAvailableRooms = (
                     if (!roomToFree.emptySlots[selectedDay]) {
                         roomToFree.emptySlots[selectedDay] = [];
                     }
-                    // Add this slot to the Empty List (freeing it up)
+                    
+                    // Logic: If room was NOT free before, but IS free now because of absence, mark as freed.
+                    // IMPORTANT: We only mark isFreed if the slot wasn't already in the list.
                     if (!roomToFree.emptySlots[selectedDay].includes(timeIndex)) {
                         roomToFree.emptySlots[selectedDay].push(timeIndex);
+                        
+                        // We mark the whole room object as potentially freed. 
+                        // In the filter step, we'll verify if this specific time index is the one that's freed.
+                        // Actually, 'isFreed' property on the room object is too broad if it applies to ANY slot.
+                        // But for the specific query (selectedTimeIndex), we can set it true here if it matches.
+                        
+                        if (timeIndex === selectedTimeIndex) {
+                           roomToFree.isFreed = true;
+                        }
                     }
                 }
             });
@@ -181,8 +199,7 @@ export const getAvailableRooms = (
     });
   }
 
-  // 3. Filter Result
-  return dynamicRooms.filter((room: RoomData) => {
+  return dynamicRooms.filter((room) => {
     const isFree = room.emptySlots[selectedDay]?.includes(selectedTimeIndex);
     const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'All' || room.type === filterType;

@@ -340,23 +340,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
         </div>
       </header>
 
-      {/* --- ABSENCE BANNER --- */}
+      {/* --- NEW: STATIC HEADER FOR LEAVES --- */}
       {absentTeachers.length > 0 && (
-        <div className="bg-red-50 border-b border-red-100 px-4 py-2 overflow-hidden">
-           <div className="max-w-3xl mx-auto flex items-center gap-2 text-red-800 text-xs sm:text-sm font-medium">
-              <span className="shrink-0 font-bold uppercase bg-red-200 px-2 py-0.5 rounded text-[10px]">On Leave</span>
-              <div className="flex-1 whitespace-nowrap overflow-hidden">
-                 <div className="animate-[marquee_15s_linear_infinite] inline-block">
-                    {absentTeachers.map(id => allTeachers[id]?.name || id).join('  •  ')}
-                 </div>
-              </div>
-           </div>
+        <div className="max-w-3xl mx-auto px-4 mt-4">
+            <div className="bg-red-50 border border-red-100 rounded-lg p-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+               <div className="shrink-0 flex items-center gap-2 text-red-800 font-bold text-xs uppercase tracking-wider bg-red-200 px-2 py-1 rounded">
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                   Faculty On Leave Today
+               </div>
+               <div className="flex-1 flex flex-wrap gap-2">
+                   {absentTeachers.map(id => (
+                       <span key={id} className="text-xs font-medium text-red-900 bg-white border border-red-100 px-2 py-1 rounded shadow-sm">
+                           {allTeachers[id]?.name || id} ({id})
+                       </span>
+                   ))}
+               </div>
+            </div>
         </div>
       )}
 
       {/* IMPORTANT ALERTS */}
       {notesForToday.length > 0 && (
-        <div className="max-w-3xl mx-auto px-4 mt-6">
+        <div className="max-w-3xl mx-auto px-4 mt-4">
             {notesForToday.map(note => (
                 <div key={note.id} className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm mb-2">
                     <p className="text-gray-900 font-medium text-sm">{note.text}</p>
