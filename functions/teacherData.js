@@ -1406,7 +1406,7 @@ const scheduleATS = {
   Friday: [
     createClass('Friday', '8:30 AM', '9:30 AM', 'Lecture', 'BCH-F-SEM IV', 'R33', 'COST'),
     createClass('Friday', '9:30 AM', '10:30 AM', 'Tutorial', 'K3-SEM IV', 'T27', 'COST'),
-    createClass('Friday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-B-SEM IV', 'R32', 'COST')
+    createClass('Friday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-B-SEM IV', 'R1', 'COST')
   ],
   Saturday: [
     createClass('Saturday', '8:30 AM', '9:30 AM', 'Lecture', 'BCH-F-SEM IV', 'R3', 'COST'),
@@ -1573,16 +1573,27 @@ const scheduleAAT = {
 const scheduleVIC = {
   ...EMPTY_SCHEDULE,
   Monday: [
+    createClass('Monday', '2:00 PM', '3:00 PM', 'Lab', 'SEC6-SEM VI', 'R23-SEC6', 'DM'),
     createClass('Monday', '3:00 PM', '4:00 PM', 'Lab', 'SEC6-SEM VI', 'R23-SEC6', 'DM'),
     createClass('Monday', '4:00 PM', '5:00 PM', 'Lab', 'SEC6-SEM VI', 'R23-SEC6', 'DM'),
     createClass('Monday', '5:00 PM', '6:00 PM', 'Lab', 'SEC6-SEM VI', 'R23-SEC6', 'DM')
   ],
+  Tuesday: [
+    createClass('Tuesday', '11:30 AM', '12:30 PM', 'Tutorial', 'D1-SEM IV', 'T4', 'FIB'),
+    createClass('Tuesday', '12:30 PM', '1:30 PM', 'Lecture', 'BCH-D-SEM IV', 'R29', 'FIB')
+  ],
+  Wednesday: [
+    createClass('Wednesday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-D-SEM IV', 'R6', 'FIB'),
+    createClass('Wednesday', '12:30 PM', '1:30 PM', 'Lecture', 'BCH-D-SEM IV', 'R29', 'FIB')
+  ],
   Thursday: [
+    createClass('Thursday', '2:00 PM', '3:00 PM', 'Lab', 'SEC5-SEM IV', 'R19-SEC5', 'DM'),
     createClass('Thursday', '3:00 PM', '4:00 PM', 'Lab', 'SEC5-SEM IV', 'R19-SEC5', 'DM'),
     createClass('Thursday', '4:00 PM', '5:00 PM', 'Lab', 'SEC5-SEM IV', 'R19-SEC5', 'DM'),
     createClass('Thursday', '5:00 PM', '6:00 PM', 'Lab', 'SEC5-SEM IV', 'R19-SEC5', 'DM')
   ],
   Friday: [
+    createClass('Friday', '2:00 PM', '3:00 PM', 'Lab', 'SEC19-SEM II', 'R13-SEC19', 'DM'),
     createClass('Friday', '3:00 PM', '4:00 PM', 'Lab', 'SEC19-SEM II', 'R13-SEC19', 'DM'),
     createClass('Friday', '4:00 PM', '5:00 PM', 'Lab', 'SEC19-SEM II', 'R13-SEC19', 'DM'),
     createClass('Friday', '5:00 PM', '6:00 PM', 'Lab', 'SEC19-SEM II', 'R13-SEC19', 'DM')
@@ -1748,10 +1759,12 @@ const scheduleAAA = {
 const scheduleRAC = {
   ...EMPTY_SCHEDULE,
   Monday: [
+    createClass('Monday', '2:00 PM', '3:00 PM', 'Lecture', 'SEC5-SEM II', 'R16', 'PFP'),
     createClass('Monday', '3:00 PM', '4:00 PM', 'Lab', 'SEC5-SEM II', 'R16-SEC5', 'PFP'),
     createClass('Monday', '4:00 PM', '5:00 PM', 'Lab', 'SEC5-SEM II', 'R16-SEC5', 'PFP')
   ],
   Tuesday: [
+    createClass('Tuesday', '2:00 PM', '3:00 PM', 'Lecture', 'SEC1-SEM VI', 'R19', 'PFP'),
     createClass('Tuesday', '3:00 PM', '4:00 PM', 'Lab', 'SEC1-SEM VI', 'R19-SEC1', 'PFP'),
     createClass('Tuesday', '4:00 PM', '5:00 PM', 'Lab', 'SEC1-SEM VI', 'R19-SEC1', 'PFP')
   ],
@@ -1763,6 +1776,7 @@ const scheduleRAC = {
   Thursday: [
     createClass('Thursday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-K-SEM IV', 'CL2', 'BSTAT'),
     createClass('Thursday', '12:30 PM', '1:30 PM', 'Lab', 'KP1-SEM IV', 'R31-KP1', 'BSTAT'),
+    createClass('Thursday', '2:00 PM', '3:00 PM', 'Lecture', 'SEC2-SEM IV', 'R20', 'PFP'),
     createClass('Thursday', '3:00 PM', '4:00 PM', 'Lab', 'SEC2-SEM IV', 'R20-SEC2', 'PFP'),
     createClass('Thursday', '4:00 PM', '5:00 PM', 'Lab', 'SEC2-SEM IV', 'R20-SEC2', 'PFP')
   ],
@@ -1781,19 +1795,25 @@ const scheduleRAS = {
   ],
   Tuesday: [
     createClass('Tuesday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-F-SEM VI', 'PB3', 'CG'),
-    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Tutorial', 'J2-SEM VI', 'T43', 'CG')
+    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Tutorial', 'J2-SEM VI', 'T43', 'CG'),
+    createClass('Tuesday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-E-SEM VI', 'R33', 'CG')
   ],
   Wednesday: [
     createClass('Wednesday', '9:30 AM', '10:30 AM', 'Tutorial', 'K1-SEM VI', 'T43', 'CG'),
-    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-G-SEM VI', 'R33', 'CG')
+    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-G-SEM VI', 'R33', 'CG'),
+    createClass('Wednesday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-E-SEM VI', 'R33', 'CG'),
+    createClass('Wednesday', '12:30 PM', '1:30 AM', 'Lecture', 'A2-SEM II', 'T40', 'CGBE')
   ],
   Thursday: [
     createClass('Thursday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-G-SEM VI', 'R21', 'CG'),
-    createClass('Thursday', '10:30 AM', '11:30 AM', 'Tutorial', 'B3-SEM VI', 'T43', 'CG')
+    createClass('Thursday', '10:30 AM', '11:30 AM', 'Tutorial', 'B3-SEM VI', 'T43', 'CG'),
+    createClass('Thursday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-F-SEM VI', 'R18', 'CG')
   ],
   Friday: [
     createClass('Friday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-F-SEM VI', 'R28', 'CG'),
-    createClass('Friday', '10:30 AM', '11:30 AM', 'Tutorial', 'A3-SEM VI', 'T43', 'CG')
+    createClass('Friday', '10:30 AM', '11:30 AM', 'Tutorial', 'A3-SEM VI', 'T43', 'CG'),
+    createClass('Friday', '11:30 AM', '12:30 PM', 'Tutorial', 'M1-SEM VI', 'T43', 'CG'),
+    createClass('Friday', '12:30 PM', '1:30 AM', 'Lecture', 'BCH-E-SEM VI', 'R33', 'CG')
   ],
 };
 
@@ -1802,21 +1822,29 @@ const scheduleKKS = {
   ...EMPTY_SCHEDULE,
   Monday: [
     createClass('Monday', '9:30 AM', '10:30 AM', 'Tutorial', 'IBFS8-SEM VI', 'T44', 'LDO'),
-    createClass('Monday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-J-SEM VI', 'R35', 'IBFS')
+    createClass('Monday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-J-SEM VI', 'R35', 'IBFS'),
+    createClass('Monday', '11:30 AM', '12:30 PM', 'Lecture', 'Joint-SEM VI', 'PB3', 'IBFS'),
+    createClass('Monday', '12:30 PM', '1:30 AM', 'Lecture', 'Joint-SEM VI', 'PB3', 'IBFS')
   ],
   Tuesday: [
-    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM VI', 'R28', 'IBFS')
+    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM VI', 'R28', 'IBFS'),
+    createClass('Tuesday', '12:30 PM', '1:30 AM', 'Tutorial', 'IBFS4-SEM VI', 'T44', 'IBFS')
   ],
   Wednesday: [
     createClass('Wednesday', '9:30 AM', '10:30 AM', 'Tutorial', 'IBFS1-SEM VI', 'T44', 'IBFS'),
-    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-J-SEM VI', 'R35', 'IBFS')
+    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-J-SEM VI', 'R35', 'IBFS'),
+    createClass('Wednesday', '11:30 AM', '12:30 PM', 'Tutorial', 'IBFS7-SEM VI', 'T44', 'IBFS')
   ],
   Thursday: [
     createClass('Thursday', '9:30 AM', '10:30 AM', 'Tutorial', 'IBFS2-SEM VI', 'T44', 'IBFS'),
-    createClass('Thursday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM VI', 'R35', 'IBFS')
+    createClass('Thursday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM VI', 'R35', 'IBFS'),
+    createClass('Thursday', '11:30 AM', '12:30 PM', 'Tutorial', 'LDO1-SEM VI', 'T44', 'LDO'),
+    createClass('Thursday', '12:30 PM', '1:30 AM', 'Lecture', 'BCH-J-SEM VI', 'R13', 'IBFS')
   ],
   Friday: [
-    createClass('Friday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM VI', 'R33', 'IBFS')
+    createClass('Friday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM VI', 'R33', 'IBFS'),
+    createClass('Friday', '11:30 AM', '12:30 PM', 'Lecture', 'Joint-SEM VI', 'SCR4', 'IBFS'),
+    createClass('Friday', '12:30 PM', '1:30 AM', 'Tutorial', 'LDO2-SEM VI', 'T44', 'LDO')
   ],
 };
 
@@ -1891,17 +1919,25 @@ const scheduleCUS = {
   Tuesday: [
     createClass('Tuesday', '8:30 AM', '9:30 AM', 'Lecture', 'BCH-H-SEM II', 'R27', 'HRM'),
     createClass('Tuesday', '9:30 AM', '10:30 AM', 'Tutorial', 'COMM1-SEM VI', 'T46', 'LD'),
-    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-A-SEM VI', 'R7', 'LD')
+    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-A-SEM VI', 'R7', 'LD'),
+    createClass('Tuesday', '11:30 AM', '12:30 PM', 'Tutorial', 'COMM3-SEM VI', 'T44', 'LD'),
+    createClass('Tuesday', '12:30 PM', '1:30 AM', 'Lecture', 'Joint-SEM VI', 'R23', 'LD')
   ],
   Wednesday: [
-    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Tutorial', 'A2-SEM VI', 'T44', 'LD')
+    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Tutorial', 'A2-SEM VI', 'T44', 'LD'),
+    createClass('Wednesday', '11:30 AM', '12:30 PM', 'Tutorial', 'BCH-A-SEM VI', 'PB4', 'LD'),
+    createClass('Wednesday', '12:30 PM', '1:30 AM', 'Tutorial', 'Joint-SEM VI', 'R23', 'LD')
   ],
   Thursday: [
-    createClass('Thursday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-H-SEM II', 'R2', 'HRM')
+    createClass('Thursday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-H-SEM II', 'R2', 'HRM'),
+    createClass('Thursday', '11:30 AM', '12:30 PM', 'Tutorial', 'H3-SEM II', 'T45', 'HRM'),
+    createClass('Thursday', '12:30 PM', '1:30 AM', 'Lecture', 'Joint-SEM VI', 'R23', 'LD')
   ],
   Friday: [
     createClass('Friday', '9:30 AM', '10:30 AM', 'Tutorial', 'COMM2-SEM VI', 'T25', 'LD'),
-    createClass('Friday', '10:30 AM', '11:30 AM', 'Tutorial', 'A1-SEM VI', 'T44', 'LD')
+    createClass('Friday', '10:30 AM', '11:30 AM', 'Tutorial', 'A1-SEM VI', 'T44', 'LD'),
+    createClass('Friday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-A-SEM VI', 'R24', 'LD'),
+    createClass('Friday', '12:30 PM', '1:30 AM', 'Tutorial', 'A3-SEM VI', 'T25', 'LD')
   ],
 };
 
@@ -1939,13 +1975,20 @@ const scheduleNJA = {
 // Data for Mr. Abhishek Kumar Yadav (AKY)
 const scheduleAKY = {
   ...EMPTY_SCHEDULE,
+  Monday: [
+    createClass('Monday', '11:30 AM', '12:30 PM', 'Lab', 'VAC9-SEM II', 'R27-VAC9', 'DE'),
+    createClass('Monday', '12:30 PM', '1:30 PM', 'Lab', 'VAC9-SEM II', 'R27-VAC9', 'DE')
+  ],
   Tuesday: [
+    createClass('Tuesday', '2:00 PM', '3:00 PM', 'Lab', 'VAC9-SEM II', 'R17-VAC9', 'DE'),
     createClass('Tuesday', '3:00 PM', '4:00 PM', 'Lab', 'VAC9-SEM II', 'R17-VAC9', 'DE')
   ],
   Thursday: [
+    createClass('Thursday', '2:00 PM', '3:00 PM', 'Lab', 'VAC8-SEM II', 'R24-VAC8', 'DE'),
     createClass('Thursday', '3:00 PM', '4:00 PM', 'Lab', 'VAC8-SEM II', 'R24-VAC8', 'DE')
   ],
   Friday: [
+    createClass('Friday', '2:00 PM', '3:00 PM', 'Lab', 'VAC8-SEM II', 'R17-VAC8', 'DE'),
     createClass('Friday', '3:00 PM', '4:00 PM', 'Lab', 'VAC8-SEM II', 'R17-VAC8', 'DE')
   ],
 };
@@ -1984,16 +2027,30 @@ const scheduleALK = {
 // Data for Dr. Shruti Mallik (SIM)
 const scheduleSIM = {
   ...EMPTY_SCHEDULE,
+  Monday: [
+    createClass('Monday', '11:00 AM', '12:30 PM', 'Lab', 'VAC21-SEM II', 'R37-VAC21', 'ABH'),
+    createClass('Monday', '12:30 PM', '1:30 PM', 'Lab', 'VAC21-SEM II', 'R37-VAC21', 'ABH'),
+    createClass('Monday', '2:00 PM', '3:00 PM', 'Lecture', 'BCH-A-SEM VIII', 'SCR4', 'RKM'),
+    createClass('Monday', '3:00 PM', '4:00 PM', 'Lecture', 'BCH-A-SEM VIII', 'SCR4', 'RKM')
+  ],
   Tuesday: [
+    createClass('Tuesday', '2:00 PM', '3:00 PM', 'Lecture', 'BCH-A-SEM VIII', 'R7', 'RKM'),
+    createClass('Tuesday', '3:00 PM', '4:00 PM', 'Lab', 'VAC16-SEM IV', 'R33-VAC16', 'ABH'),
     createClass('Tuesday', '4:00 PM', '5:00 PM', 'Lab', 'VAC16-SEM IV', 'R33-VAC16', 'ABH')
   ],
   Wednesday: [
+    createClass('Wednesday', '2:00 PM', '3:00 PM', 'Lecture', 'VAC23-SEM II', 'R13', 'ABH'),
+    createClass('Wednesday', '3:00 PM', '4:00 PM', 'Lab', 'VAC22-SEM II', 'R13-VAC22', 'ABH'),
     createClass('Wednesday', '4:00 PM', '5:00 PM', 'Lab', 'VAC22-SEM II', 'R13-VAC22', 'ABH')
   ],
   Thursday: [
+    createClass('Thursday', '2:00 PM', '3:00 PM', 'Lecture', 'VAC22-SEM II', 'R21', 'ABH'),
+    createClass('Thursday', '3:00 PM', '4:00 PM', 'Lab', 'VAC23-SEM II', 'R21-VAC23', 'ABH'),
     createClass('Thursday', '4:00 PM', '5:00 PM', 'Lab', 'VAC23-SEM II', 'R21-VAC23', 'ABH')
   ],
   Friday: [
+    createClass('Friday', '2:00 PM', '3:00 PM', 'Lecture', 'VAC21-SEM II', 'R24', 'ABH'),
+    createClass('Friday', '3:00 PM', '4:00 PM', 'Tutorial', 'COMM1-SEM VIII', 'T1', 'RKM'),
     createClass('Friday', '4:00 PM', '5:00 PM', 'Tutorial', 'COMM2-SEM VIII', 'T1', 'RKM')
   ],
 };
@@ -2117,7 +2174,7 @@ const scheduleSAR = {
   Friday: [
     createClass('Friday', '8:30 AM', '9:30 AM', 'Lecture', 'BCH-L-SEM VI', 'R22', 'CG'),
     createClass('Friday', '9:30 AM', '10:30 AM', 'Tutorial', 'K1-SEM IV', 'T43', 'HRD'),
-    createClass('Friday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM IV', 'R1', 'HRD'),
+    createClass('Friday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-K-SEM IV', 'R23', 'HRD'),
     createClass('Friday', '11:30 AM', '12:30 PM', 'Lecture', 'BCH-N-SEM VI', 'R2', 'CG')
   ],
 };
@@ -2342,15 +2399,17 @@ const schedulePB = {
   ],
   Tuesday: [
     createClass('Tuesday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-A-SEM IV', 'R24', 'TRIX'),
-    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Lab', 'BCH-N-SEM VI', 'R29-N', 'BRM')
+    createClass('Tuesday', '10:30 AM', '11:30 AM', 'Lab', 'A3-SEM IV', 'R29-A3', 'TRIX'),
+    createClass('Tuesday', '11:30 AM', '12:30 AM', 'Lab', 'A3-SEM IV', 'R29-A3', 'TRIX')
   ],
   Wednesday: [
     createClass('Wednesday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-B-SEM IV', 'R24', 'TRIX'),
-    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Lab', 'B2-SEM IV', 'R29-B2', 'TRIX')
+    createClass('Wednesday', '10:30 AM', '11:30 AM', 'Lab', 'Joint-SEM IV', 'R29-Joint', 'TRIX')
   ],
   Thursday: [
     createClass('Thursday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-A-SEM IV', 'R24', 'TRIX'),
-    createClass('Thursday', '10:30 AM', '11:30 AM', 'Lab', 'A2-SEM IV', 'R29-A2', 'TRIX')
+    createClass('Thursday', '10:30 AM', '11:30 AM', 'Lab', 'Joint-SEM IV', 'R29-Joint', 'TRIX'),
+    createClass('Thursday', '11:30 AM', '12:30 AM', 'Lab', 'Joint-SEM IV', 'R29-Joint', 'TRIX')
   ],
   Friday: [
     createClass('Friday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-B-SEM IV', 'R24', 'TRIX'),
@@ -2513,7 +2572,8 @@ const scheduleRK = {
     createClass('Wednesday', '9:30 AM', '10:30 AM', 'Lecture', 'BCH-G-SEM VI', 'R20', 'IECO'),
     createClass('Wednesday', '10:30 AM', '11:30 AM', 'Tutorial', 'IECO1-SEM VI', 'T53', 'IECO'),
     createClass('Wednesday', '11:30 AM', '12:30 PM', 'Tutorial', 'IECO2-SEM VI', 'T50', 'IECO'),
-    createClass('Wednesday', '12:30 PM', '1:30 PM', 'Lecture', 'Joint-SEM VI', 'PB3', 'IECO')
+    createClass('Wednesday', '12:30 PM', '1:30 PM', 'Lecture', 'Joint-SEM VI', 'PB3', 'IECO'),
+    createClass('Wednesday', '2:00 PM', '3:00 PM', 'Tutorial', 'IECO4-SEM VI', 'T51', 'IECO')
   ],
   Thursday: [
     createClass('Thursday', '10:30 AM', '11:30 AM', 'Lecture', 'BCH-G-SEM VI', 'SCR4', 'IECO'),
