@@ -21,26 +21,23 @@ export const TIME_SLOTS = [
   "05:00 PM - 06:00 PM"  // 8
 ] as const;
 
-// Helper to check if the selected day is actually "Today"
+// Helper to check if the selected day matches the system's "Today"
 const getSystemDayName = (): string => {
   return new Date().toLocaleDateString('en-US', { weekday: 'long' });
 };
 
 export const getTimeSlotIndex = (startTime: string): number => {
-  // Normalize: remove spaces, uppercase
   const start = startTime.replace(/\s+/g, '').toUpperCase(); 
-  // Matches "8:30", "08:30", "8:30AM", "08:30AM"
   if (start.includes("8:30")) return 0;
   if (start.includes("9:30")) return 1;
   if (start.includes("10:30")) return 2;
   if (start.includes("11:30")) return 3;
   if (start.includes("12:30")) return 4;
-  // Afternoon slots
   if (start.includes("2:00") || start.includes("02:00") || start.includes("14:00")) return 5;
   if (start.includes("3:00") || start.includes("03:00") || start.includes("15:00")) return 6;
   if (start.includes("4:00") || start.includes("04:00") || start.includes("16:00")) return 7;
   if (start.includes("5:00") || start.includes("05:00") || start.includes("17:00")) return 8;
-  return 0; // Fallback
+  return 0; 
 };
 
 export interface RoomSchedule {
@@ -60,7 +57,7 @@ export interface RoomSearchResult extends RoomData {
   isFreed: boolean;
 }
 
-// --- STATIC ROOM DATA ---
+// --- STATIC ROOM DATA (Source of Truth) ---
 const EXISTING_ROOMS: RoomData[] = [
   { id: "CL1", name: "CL1", type: "Lab", emptySlots: { "Monday": [], "Tuesday": [], "Wednesday": [7, 8], "Thursday": [], "Friday": [7, 8], "Saturday": [0, 3, 4, 5, 6, 7, 8] } },
   { id: "CL2", name: "CL2", type: "Lab", emptySlots: { "Monday": [], "Tuesday": [], "Wednesday": [5, 6, 7, 8], "Thursday": [], "Friday": [7, 8], "Saturday": [0, 3, 4, 5, 6, 7, 8] } },
@@ -166,11 +163,11 @@ export const getAvailableRooms = (
   allTeachers: Record<string, TeacherProfile> = {}
 ): RoomSearchResult[] => {
   
-  // 1. Clone data to avoid mutation
-  const dynamicRooms: RoomSearchResult[] = ROOMS_DATA.map(room => ({ ...room, isFreed: false }));
+  // 1. DEEP CLONE to prevent mutation of static data (Crucial Fix)
+  const dynamicRooms: RoomSearchResult[] = JSON.parse(JSON.stringify(ROOMS_DATA)).map((r: any) => ({ ...r, isFreed: false }));
 
   // 2. CHECK: Is the user looking at Today's schedule?
-  const systemDay = getSystemDayName(); // e.g. "Wednesday"
+  const systemDay = getSystemDayName();
   const isLookingAtToday = selectedDay === systemDay;
 
   // 3. Process Absences ONLY if looking at Today
@@ -181,7 +178,7 @@ export const getAvailableRooms = (
             teacher.schedule[selectedDay].forEach(session => {
                 const timeIndex = getTimeSlotIndex(session.startTime);
                 
-                // Find room (exact match or prefix like "R22-A" matching "R22")
+                // Find room (exact match or prefix)
                 const roomToFree = dynamicRooms.find((r) => 
                     session.room === r.id || session.room.startsWith(r.id + '-')
                 );
@@ -191,7 +188,7 @@ export const getAvailableRooms = (
                         roomToFree.emptySlots[selectedDay] = [];
                     }
                     
-                    // Logic: If room was occupied (not in empty list), free it.
+                    // Logic: If room was NOT free before, but IS free now because of absence, mark as freed.
                     if (!roomToFree.emptySlots[selectedDay].includes(timeIndex)) {
                         roomToFree.emptySlots[selectedDay].push(timeIndex);
                         
