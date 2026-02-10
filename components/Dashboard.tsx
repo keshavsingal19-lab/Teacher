@@ -361,23 +361,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout }) => {
             <h1 className="text-lg font-bold text-gray-800">{teacher.name}</h1>
             <p className="text-xs text-gray-500">{teacher.department}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+             
+             {/* RAISE DISCREPANCY BUTTON */}
+             <a 
+               href="mailto:abcddcba121202@gmail.com?subject=Discrepancy%20Report&body=My%20web-app%20has%20discrepancies.%20Kindly%20rectify%20it.%20(For%20faculty%3A%20Please%20send%20this%20mail%20from%20your%20official%20mail%20id%20and%20give%2048%20hours%20for%20rectification)"
+               className="text-xs font-bold bg-orange-50 text-orange-700 px-3 py-2 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1 no-underline"
+               title="Report an issue with the schedule"
+             >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span className="hidden sm:inline">Raise Discrepancy</span>
+                <span className="sm:hidden">Report</span>
+             </a>
+
              {/* GENERAL FIND ROOM BUTTON */}
              <button 
                onClick={() => handleOpenRoomFinder()}
                className="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1"
              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                Find Empty Room
+                Find Room
              </button>
              
              {isSaving && (
                  <span className="text-xs text-indigo-500 font-medium flex items-center gap-1 animate-pulse">
                     <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    Syncing...
+                    Sync...
                  </span>
              )}
-             <button onClick={onLogout} className="text-sm text-red-500 hover:text-red-700 font-medium">Logout</button>
+             <button onClick={onLogout} className="text-sm text-red-500 hover:text-red-700 font-medium ml-1">Logout</button>
           </div>
         </div>
       </header>
