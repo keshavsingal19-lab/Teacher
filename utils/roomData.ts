@@ -21,18 +21,26 @@ export const TIME_SLOTS = [
   "05:00 PM - 06:00 PM"  // 8
 ] as const;
 
+// Helper to check if the selected day is actually "Today"
+const getSystemDayName = (): string => {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+};
+
 export const getTimeSlotIndex = (startTime: string): number => {
-  const start = startTime.trim().toUpperCase();
-  if (start.startsWith("8:30") || start.startsWith("08:30")) return 0;
-  if (start.startsWith("9:30") || start.startsWith("09:30")) return 1;
-  if (start.startsWith("10:30")) return 2;
-  if (start.startsWith("11:30")) return 3;
-  if (start.startsWith("12:30")) return 4;
-  if (start.startsWith("2:00") || start.startsWith("02:00") || start.startsWith("14:00")) return 5;
-  if (start.startsWith("3:00") || start.startsWith("03:00") || start.startsWith("15:00")) return 6;
-  if (start.startsWith("4:00") || start.startsWith("04:00") || start.startsWith("16:00")) return 7;
-  if (start.startsWith("5:00") || start.startsWith("05:00") || start.startsWith("17:00")) return 8;
-  return 0;
+  // Normalize: remove spaces, uppercase
+  const start = startTime.replace(/\s+/g, '').toUpperCase(); 
+  // Matches "8:30", "08:30", "8:30AM", "08:30AM"
+  if (start.includes("8:30")) return 0;
+  if (start.includes("9:30")) return 1;
+  if (start.includes("10:30")) return 2;
+  if (start.includes("11:30")) return 3;
+  if (start.includes("12:30")) return 4;
+  // Afternoon slots
+  if (start.includes("2:00") || start.includes("02:00") || start.includes("14:00")) return 5;
+  if (start.includes("3:00") || start.includes("03:00") || start.includes("15:00")) return 6;
+  if (start.includes("4:00") || start.includes("04:00") || start.includes("16:00")) return 7;
+  if (start.includes("5:00") || start.includes("05:00") || start.includes("17:00")) return 8;
+  return 0; // Fallback
 };
 
 export interface RoomSchedule {
@@ -48,9 +56,8 @@ export interface RoomData {
   emptySlots: RoomSchedule;
 }
 
-// Result interface for the UI
 export interface RoomSearchResult extends RoomData {
-  isFreed: boolean; // New flag
+  isFreed: boolean;
 }
 
 // --- STATIC ROOM DATA ---
@@ -159,17 +166,22 @@ export const getAvailableRooms = (
   allTeachers: Record<string, TeacherProfile> = {}
 ): RoomSearchResult[] => {
   
+  // 1. Clone data to avoid mutation
   const dynamicRooms: RoomSearchResult[] = ROOMS_DATA.map(room => ({ ...room, isFreed: false }));
 
-  // Process Absences
-  if (absentTeacherIds.length > 0) {
+  // 2. CHECK: Is the user looking at Today's schedule?
+  const systemDay = getSystemDayName(); // e.g. "Wednesday"
+  const isLookingAtToday = selectedDay === systemDay;
+
+  // 3. Process Absences ONLY if looking at Today
+  if (isLookingAtToday && absentTeacherIds.length > 0) {
     absentTeacherIds.forEach(tId => {
         const teacher = allTeachers[tId];
         if (teacher && teacher.schedule[selectedDay]) {
             teacher.schedule[selectedDay].forEach(session => {
                 const timeIndex = getTimeSlotIndex(session.startTime);
                 
-                // Find room. Match ID or Name or Prefix (e.g. T54-1 matches T54)
+                // Find room (exact match or prefix like "R22-A" matching "R22")
                 const roomToFree = dynamicRooms.find((r) => 
                     session.room === r.id || session.room.startsWith(r.id + '-')
                 );
@@ -179,16 +191,11 @@ export const getAvailableRooms = (
                         roomToFree.emptySlots[selectedDay] = [];
                     }
                     
-                    // Logic: If room was NOT free before, but IS free now because of absence, mark as freed.
-                    // IMPORTANT: We only mark isFreed if the slot wasn't already in the list.
+                    // Logic: If room was occupied (not in empty list), free it.
                     if (!roomToFree.emptySlots[selectedDay].includes(timeIndex)) {
                         roomToFree.emptySlots[selectedDay].push(timeIndex);
                         
-                        // We mark the whole room object as potentially freed. 
-                        // In the filter step, we'll verify if this specific time index is the one that's freed.
-                        // Actually, 'isFreed' property on the room object is too broad if it applies to ANY slot.
-                        // But for the specific query (selectedTimeIndex), we can set it true here if it matches.
-                        
+                        // Mark as freed ONLY if this specific time index matches the user's query
                         if (timeIndex === selectedTimeIndex) {
                            roomToFree.isFreed = true;
                         }
@@ -199,6 +206,7 @@ export const getAvailableRooms = (
     });
   }
 
+  // 4. Filter
   return dynamicRooms.filter((room) => {
     const isFree = room.emptySlots[selectedDay]?.includes(selectedTimeIndex);
     const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase());

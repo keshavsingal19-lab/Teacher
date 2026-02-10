@@ -31,6 +31,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
   
   const [view, setView] = useState<ViewState>('LIVE');
   const [absentTeachers, setAbsentTeachers] = useState<string[]>([]);
+  const [expandLeaves, setExpandLeaves] = useState(false); // Collapsible state
 
   // Notes state
   const [notes, setNotes] = useState<ClassNote[]>([]);
@@ -340,33 +341,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
         </div>
       </header>
 
-      {/* --- NEW: STATIC HEADER FOR LEAVES --- */}
+      {/* --- COLLAPSIBLE ABSENCE HEADER --- */}
       {absentTeachers.length > 0 && (
-        <div className="max-w-3xl mx-auto px-4 mt-4">
-            <div className="bg-red-50 border border-red-100 rounded-lg p-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-               <div className="shrink-0 flex items-center gap-2 text-red-800 font-bold text-xs uppercase tracking-wider bg-red-200 px-2 py-1 rounded">
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                   Faculty On Leave Today
-               </div>
-               <div className="flex-1 flex flex-wrap gap-2">
-                   {absentTeachers.map(id => (
-                       <span key={id} className="text-xs font-medium text-red-900 bg-white border border-red-100 px-2 py-1 rounded shadow-sm">
-                           {allTeachers[id]?.name || id} ({id})
-                       </span>
-                   ))}
-               </div>
+        <div className="max-w-3xl mx-auto px-4 mt-2">
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+               <button 
+                 onClick={() => setExpandLeaves(!expandLeaves)}
+                 className="w-full flex justify-between items-center p-3 bg-red-50 text-red-800 text-xs font-bold uppercase tracking-wider hover:bg-red-100 transition-colors"
+               >
+                  <span className="flex items-center gap-2">
+                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                     Faculty Updates ({absentTeachers.length})
+                  </span>
+                  <svg className={`w-4 h-4 transition-transform ${expandLeaves ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+               </button>
+               
+               {expandLeaves && (
+                   <div className="p-3 bg-white border-t border-red-100 animate-[fadeIn_0.2s_ease-out]">
+                       <p className="text-xs text-gray-500 mb-2">The following faculty are on leave today. Their rooms have been marked as free.</p>
+                       <div className="flex flex-wrap gap-2">
+                           {absentTeachers.map(id => (
+                               <span key={id} className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                   {allTeachers[id]?.name || id}
+                               </span>
+                           ))}
+                       </div>
+                   </div>
+               )}
             </div>
-        </div>
-      )}
-
-      {/* IMPORTANT ALERTS */}
-      {notesForToday.length > 0 && (
-        <div className="max-w-3xl mx-auto px-4 mt-4">
-            {notesForToday.map(note => (
-                <div key={note.id} className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm mb-2">
-                    <p className="text-gray-900 font-medium text-sm">{note.text}</p>
-                </div>
-            ))}
         </div>
       )}
 
