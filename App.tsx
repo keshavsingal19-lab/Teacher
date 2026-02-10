@@ -8,17 +8,22 @@ import { TeacherProfile } from './types';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminToken, setAdminToken] = useState(''); // Store token in state
   const [currentUser, setCurrentUser] = useState<TeacherProfile | null>(null);
 
-  const handleLoginSuccess = (user: any) => {
-    if (user.isAdmin) {
+  const handleLoginSuccess = (data: any) => {
+    if (data.isAdmin) {
         setIsAdmin(true);
         setIsAuthenticated(true);
+        setAdminToken(data.token);
+        
+        // Persist admin session
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('adminToken', data.token);
     } else {
-        setCurrentUser(user);
+        setCurrentUser(data);
         setIsAuthenticated(true);
-        // Persist session
-        localStorage.setItem('teacherCode', user.id);
+        localStorage.setItem('teacherCode', data.id);
     }
   };
 
@@ -26,7 +31,12 @@ function App() {
     setIsAuthenticated(false);
     setIsAdmin(false);
     setCurrentUser(null);
+    setAdminToken('');
+    
+    // Clear all storage
     localStorage.removeItem('teacherCode');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminToken');
   };
 
   return (
@@ -34,13 +44,16 @@ function App() {
       {!isAuthenticated ? (
         <Login onLoginSuccess={handleLoginSuccess} />
       ) : isAdmin ? (
-        // cast TEACHERS to any to avoid TypeScript strict signature mismatch
-        <AdminDashboard allTeachers={TEACHERS as any} onLogout={handleLogout} />
+        <AdminDashboard 
+            allTeachers={TEACHERS as any} 
+            onLogout={handleLogout} 
+            adminToken={adminToken} // Pass token to dashboard
+        />
       ) : (
         <Dashboard 
           teacher={currentUser!} 
           onLogout={handleLogout} 
-          allTeachers={TEACHERS as any} // Cast here as well for safety
+          allTeachers={TEACHERS as any} 
         />
       )}
     </div>

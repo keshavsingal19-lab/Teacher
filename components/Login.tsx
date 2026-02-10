@@ -6,8 +6,16 @@ export const Login = ({ onLoginSuccess }: { onLoginSuccess: (user: any) => void 
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Check for existing session
     const savedCode = localStorage.getItem('teacherCode');
-    if (savedCode) {
+    const savedAdmin = localStorage.getItem('isAdmin');
+    const savedToken = localStorage.getItem('adminToken');
+
+    if (savedAdmin === 'true' && savedToken) {
+        // Auto-login admin
+        onLoginSuccess({ isAdmin: true, token: savedToken });
+    } else if (savedCode) {
+        // Auto-login teacher
         attemptLogin(savedCode);
     }
   }, []);
@@ -16,14 +24,6 @@ export const Login = ({ onLoginSuccess }: { onLoginSuccess: (user: any) => void 
     setLoading(true);
     setError('');
 
-    // --- 1. ADMIN CHECK ---
-    if (code === 'ADMIN-SECRET-CODE') {
-        setLoading(false);
-        onLoginSuccess({ isAdmin: true });
-        return;
-    }
-
-    // --- 2. REGULAR LOGIN ---
     try {
         const response = await fetch('/api/login', {
             method: 'POST',
@@ -33,9 +33,15 @@ export const Login = ({ onLoginSuccess }: { onLoginSuccess: (user: any) => void 
         const data = await response.json();
         
         if (data.success) {
-            onLoginSuccess(data.teacher);
+            // Check if backend identified this as an admin
+            if (data.isAdmin) {
+                // Securely pass the token needed for future requests
+                onLoginSuccess({ isAdmin: true, token: data.token });
+            } else {
+                onLoginSuccess(data.teacher);
+            }
         } else {
-            setError(data.error);
+            setError(data.error || 'Invalid credentials');
         }
     } catch (err) {
         setError('Connection failed. Please check your internet.');
@@ -47,7 +53,7 @@ export const Login = ({ onLoginSuccess }: { onLoginSuccess: (user: any) => void 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Faculty Login</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">TeacherAssist Login</h2>
         <form onSubmit={(e) => { e.preventDefault(); attemptLogin(passcode); }}>
             <input 
               type="password" 

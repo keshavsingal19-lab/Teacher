@@ -4,9 +4,10 @@ import { TeacherProfile } from '../types';
 interface AdminDashboardProps {
   allTeachers: any; 
   onLogout: () => void;
+  adminToken: string; // New prop for security
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onLogout }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onLogout, adminToken }) => {
   const [absentIds, setAbsentIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,18 +33,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
   }, []);
 
   const toggleAbsence = async (teacherId: string, currentStatus: boolean) => {
-    // 1. Optimistic UI Update (Instant change)
+    // 1. Optimistic UI Update
     if (currentStatus) {
         setAbsentIds(prev => prev.filter(id => id !== teacherId));
     } else {
         setAbsentIds(prev => [...prev, teacherId]);
     }
 
-    // 2. Send to Server with ERROR CHECKING
+    // 2. Secure Send to Server
     try {
         const response = await fetch('/api/absences', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // CRITICAL: We send the token in the header
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Admin-Token': adminToken 
+            },
             body: JSON.stringify({ 
                 teacherId, 
                 action: currentStatus ? 'REMOVE' : 'MARK' 
@@ -52,7 +57,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ allTeachers, onL
 
         const data = await response.json();
 
-        // If server says "success: false" or returns error, REVERT changes
         if (!response.ok || !data.success) {
             throw new Error(data.error || "Server failed to save");
         }

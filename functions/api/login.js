@@ -3,7 +3,6 @@ import { TEACHERS } from '../teacherData.js';
 export async function onRequestPost(context) {
   const { request, env } = context;
   
-  // 1. SAFETY CHECK: Ensure Database is connected
   if (!env.DB) {
     return new Response(JSON.stringify({ error: "Database not connected" }), { status: 500 });
   }
@@ -12,12 +11,12 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { passcode } = body;
     
-    // Get the user's IP Address
+    // IP Rate Limiting Setup
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const LOCKOUT_TIME = 30 * 60 * 1000; // 30 Minutes
     const MAX_ATTEMPTS = 6;
 
-    // 2. CHECK JAIL: Is this IP locked out?
+    // 1. CHECK JAIL: Is this IP locked out?
     const record = await env.DB.prepare("SELECT * FROM login_attempts WHERE ip_address = ?").bind(ip).first();
     
     if (record) {
@@ -31,12 +30,28 @@ export async function onRequestPost(context) {
       }
     }
 
-    // 3. VALIDATE PASSWORD
     if (!passcode) {
         return new Response(JSON.stringify({ error: "Passcode required" }), { status: 400 });
     }
 
-    // --- A. CHECK DATABASE FOR CUSTOM PASSWORD ---
+    // --- SECURE ADMIN CHECK ---
+    // We check the environment variable. 
+    if (env.ADMIN_PASSWORD && passcode === env.ADMIN_PASSWORD) {
+        // Clear fail attempts on success
+        await env.DB.prepare("DELETE FROM login_attempts WHERE ip_address = ?").bind(ip).run();
+        
+        return new Response(JSON.stringify({ 
+            success: true, 
+            teacher: { id: 'ADMIN', name: 'Administrator', department: 'Admin Console' },
+            isAdmin: true,
+            // We return the passcode as a session token for simplicity in this specific architecture
+            token: passcode 
+        }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // --- TEACHER CHECKS ---
+    
+    // A. Check Database for Custom Passwords
     const dbMatch = await env.DB.prepare("SELECT teacher_id FROM teacher_credentials WHERE password = ?").bind(passcode).first();
 
     if (dbMatch) {
@@ -49,11 +64,11 @@ export async function onRequestPost(context) {
         }
     }
 
-    // --- B. CHECK DEFAULT KEYS (FALLBACK) ---
+    // B. Check Default Keys
     const teacherKey = Object.keys(TEACHERS).find(k => k.toLowerCase() === passcode.trim().toLowerCase());
 
     if (teacherKey) {
-        // SECURITY: If a custom password exists, BLOCK the old default code
+        // Security: If custom password exists, block default
         const hasCustomPass = await env.DB.prepare("SELECT 1 FROM teacher_credentials WHERE teacher_id = ?").bind(teacherKey).first();
 
         if (hasCustomPass) {
@@ -66,7 +81,7 @@ export async function onRequestPost(context) {
         });
     }
 
-    // --- FAILURE ---
+    // --- FAILURE LOGIC ---
     let newCount = 1;
     if (record && (Date.now() - record.last_attempt < LOCKOUT_TIME)) {
        newCount = record.attempts + 1;
@@ -79,12 +94,7 @@ export async function onRequestPost(context) {
       last_attempt = ?
     `).bind(ip, newCount, Date.now(), newCount, Date.now()).run();
 
-    const attemptsLeft = MAX_ATTEMPTS - newCount;
-    const errorMsg = attemptsLeft > 0 
-      ? `Invalid Access Code. ${attemptsLeft} attempts remaining.` 
-      : "Invalid Access Code. You are now locked out for 30 minutes.";
-
-    return new Response(JSON.stringify({ success: false, error: errorMsg }), { status: 401 });
+    return new Response(JSON.stringify({ success: false, error: "Invalid Access Code" }), { status: 401 });
 
   } catch (err) {
     return new Response(JSON.stringify({ error: "Server Error", details: err.message }), { status: 500 });

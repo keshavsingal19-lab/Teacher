@@ -1,14 +1,14 @@
 export async function onRequest(context) {
   const { request, env } = context;
   
-  // Use IST Timezone so day resets at midnight in India
+  // Use IST Timezone
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); 
 
   if (!env.DB) {
     return new Response(JSON.stringify({ success: false, error: "Database not configured" }), { status: 500 });
   }
 
-  // --- GET: Fetch today's absent teachers ---
+  // --- GET: Publicly Accessible (Read Only) ---
   if (request.method === "GET") {
     try {
       const { results } = await env.DB.prepare(
@@ -24,13 +24,19 @@ export async function onRequest(context) {
     }
   }
 
-  // --- POST: Mark/Unmark Absence ---
+  // --- POST: Protected (Admin Only) ---
   if (request.method === "POST") {
     try {
+      // SECURITY CHECK: Verify the Admin Token Header
+      const adminToken = request.headers.get('X-Admin-Token');
+      
+      if (!env.ADMIN_PASSWORD || adminToken !== env.ADMIN_PASSWORD) {
+          return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), { status: 401 });
+      }
+
       const { teacherId, action } = await request.json(); 
       
       if (action === 'MARK') {
-        // Uses 'date' and 'teacher_id' columns
         await env.DB.prepare(
           "INSERT OR IGNORE INTO daily_absences (date, teacher_id) VALUES (?, ?)"
         ).bind(today, teacherId).run();
