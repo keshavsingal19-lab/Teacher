@@ -31,7 +31,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
   
   const [view, setView] = useState<ViewState>('LIVE');
   const [absentTeachers, setAbsentTeachers] = useState<string[]>([]);
-  const [expandLeaves, setExpandLeaves] = useState(false); // Collapsible state
+  const [expandLeaves, setExpandLeaves] = useState(false);
 
   // Notes state
   const [notes, setNotes] = useState<ClassNote[]>([]);
@@ -45,15 +45,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
   const [selectedDate, setSelectedDate] = useState<string>(''); 
   const [upcomingDates, setUpcomingDates] = useState<Date[]>([]);
   
-  // Delete Note State
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
-  // --- ROOM FINDER STATE ---
+  // Room Finder
   const [isRoomFinderOpen, setIsRoomFinderOpen] = useState(false);
   const [finderInitialDay, setFinderInitialDay] = useState<string | undefined>(undefined);
   const [finderInitialTime, setFinderInitialTime] = useState<number | undefined>(undefined);
 
-  // Load Absences
   useEffect(() => {
     fetch('/api/absences')
       .then(r => r.json())
@@ -62,7 +60,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
       });
   }, []);
 
-  // Load notes
   useEffect(() => {
     let mounted = true;
     const loadNotes = async () => {
@@ -89,7 +86,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
     return () => { mounted = false; };
   }, [teacher.id]);
 
-  // Update time
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(getFormattedTime());
@@ -99,7 +95,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
     return () => clearInterval(timer);
   }, []);
 
-  // --- HANDLERS ---
   const handleOpenRoomFinder = (session?: ClassSession) => {
       if (session) {
           setFinderInitialDay(session.day);
@@ -199,8 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
         note.link ? `\n🔗 *Link:* ${note.link}` : ''
     ];
     const message = textLines.join('\n');
-    const encodedText = encodeURIComponent(message);
-    const url = `https://api.whatsapp.com/send?text=${encodedText}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
@@ -221,9 +215,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
     }
   };
 
-  // Timeline Logic
   const todaysIsoDate = toISODate(new Date());
-  const notesForToday = notes.filter(n => n.targetDate === todaysIsoDate);
   const todaysClasses = teacher.schedule[todayName] || [];
   let activeClass: ClassSession | null = null;
   let nextClass: ClassSession | null = null;
@@ -235,17 +227,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
     else if (status === 'upcoming' && !nextClass) nextClass = session;
   }
 
-  // Render Helpers
   const renderTimeline = () => {
     if (todaysClasses.length === 0) {
       return (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-          <p className="text-gray-500 text-lg">No classes scheduled for today.</p>
+        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-100 mt-4">
+          <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+             <span className="text-2xl">☕</span>
+          </div>
+          <p className="text-slate-500 font-medium">No classes scheduled for today.</p>
+          <p className="text-slate-400 text-sm mt-1">Enjoy your free time!</p>
         </div>
       );
     }
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 mt-2">
         {sortedClasses.map((session) => (
            <ClassCard 
              key={session.id} 
@@ -263,28 +258,39 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
   const renderFullWeek = () => {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 mt-4">
             {days.map(day => (
-                <div key={day} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 border-b pb-2 mb-3 text-lg">{day}</h3>
+                <div key={day} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                    <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 text-lg flex items-center gap-2">
+                        <span className="w-1 h-6 bg-indigo-500 rounded-full"></span>
+                        {day}
+                    </h3>
                     {teacher.schedule[day] && teacher.schedule[day].length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {teacher.schedule[day].map(cls => (
-                                <div key={cls.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded">
-                                    <span className="font-medium text-gray-700 w-24">{cls.startTime}</span>
-                                    <div className="flex-1 px-4">
-                                        <div className="font-semibold text-gray-800">{cls.subject}</div>
-                                        <div className="text-xs text-gray-500">{cls.batch}</div>
+                                <div key={cls.id} className="flex justify-between items-start group p-3 hover:bg-slate-50 rounded-xl transition-colors">
+                                    <div className="flex gap-4">
+                                        <div className="w-16 font-mono text-sm font-semibold text-slate-500 pt-1">{cls.startTime}</div>
+                                        <div>
+                                            <div className="font-bold text-slate-800">{cls.subject}</div>
+                                            <div className="text-xs text-slate-500 font-medium mt-0.5">{cls.batch}</div>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                      <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">{cls.room}</span>
-                                      <button onClick={() => handleEditNote(cls)} className="text-gray-400 hover:text-indigo-600 mr-2">✏️</button>
-                                      <button onClick={() => handleOpenRoomFinder(cls)} className="text-gray-400 hover:text-indigo-600">🔍</button>
+                                    <div className="flex flex-col items-end gap-2">
+                                      <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg text-xs">{cls.room}</span>
+                                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button onClick={() => handleEditNote(cls)} className="p-1.5 hover:bg-white rounded-md text-slate-400 hover:text-indigo-600 shadow-sm border border-transparent hover:border-slate-200">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                          </button>
+                                          <button onClick={() => handleOpenRoomFinder(cls)} className="p-1.5 hover:bg-white rounded-md text-slate-400 hover:text-indigo-600 shadow-sm border border-transparent hover:border-slate-200">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                          </button>
+                                      </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ) : <p className="text-gray-400 italic text-sm">No classes.</p>}
+                    ) : <p className="text-slate-400 italic text-sm pl-4">No classes scheduled.</p>}
                 </div>
             ))}
         </div>
@@ -293,75 +299,111 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
 
   const renderNotesView = () => {
     const sortedNotes = [...notes].sort((a, b) => new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime());
-    if (sortedNotes.length === 0) return <div className="text-center py-16 bg-white rounded-xl"><p>No notes yet.</p></div>;
+    if (sortedNotes.length === 0) return (
+        <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-100 mt-4">
+            <p className="text-slate-400">You haven't added any notes yet.</p>
+        </div>
+    );
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 mt-4">
         {sortedNotes.map(note => (
-           <div key={note.id} className="bg-white rounded-lg border-l-4 border-yellow-400 shadow-sm p-4 relative min-h-[100px] overflow-hidden">
+           <div key={note.id} className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
               {deletingNoteId === note.id && (
-                  <div className="absolute inset-0 bg-white z-20 flex flex-col items-center justify-center">
-                      <p>Delete this note?</p>
+                  <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center animate-fadeIn">
+                      <p className="font-bold text-slate-800 mb-3">Delete this note?</p>
                       <div className="flex gap-3">
-                          <button onClick={cancelDelete} className="text-gray-600">Cancel</button>
-                          <button onClick={confirmDelete} className="text-red-500">Delete</button>
+                          <button onClick={cancelDelete} className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200">Cancel</button>
+                          <button onClick={confirmDelete} className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600">Delete</button>
                       </div>
                   </div>
               )}
-              <div className="pr-10 mb-2">
-                 <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded mb-1">{note.targetDateDisplay}</span>
-                 <h4 className="font-bold text-gray-800">{note.batch}</h4>
-                 <p className="text-xs text-gray-500">{note.day} • {note.timeSlot}</p>
+              <div className="flex justify-between items-start mb-3 pl-2">
+                 <div>
+                     <div className="flex items-center gap-2 mb-1">
+                        <span className="px-2.5 py-0.5 bg-yellow-50 text-yellow-700 text-[10px] font-bold uppercase tracking-wider rounded-full border border-yellow-100">{note.targetDateDisplay}</span>
+                        <span className="text-xs text-slate-400 font-medium">{note.day} • {note.timeSlot}</span>
+                     </div>
+                     <h4 className="font-bold text-slate-800 text-lg">{note.batch}</h4>
+                 </div>
+                 <div className="flex gap-1">
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShareNote(note); }} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Share via WhatsApp">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); requestDelete(note.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Note">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                 </div>
               </div>
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleShareNote(note); }} className="absolute top-2 right-12 p-2">📢</button>
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); requestDelete(note.id); }} className="absolute top-2 right-2 p-2">🗑️</button>
-              <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded">{note.text}</div>
-              {note.link && <a href={ensureProtocol(note.link)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 text-xs block mt-2">View Link</a>}
+              
+              <div className="ml-2 mt-2 text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-wrap font-medium">{note.text}</div>
+              {note.link && (
+                  <a href={ensureProtocol(note.link)} target="_blank" rel="noopener noreferrer" className="ml-2 inline-flex items-center gap-1 mt-3 text-indigo-600 text-xs font-bold hover:underline">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                      View Attached Resource
+                  </a>
+              )}
            </div>
         ))}
       </div>
     );
   };
 
-  if (isLoadingNotes) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center"><p>Loading...</p></div>;
+  if (isLoadingNotes) return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+          <p className="text-slate-500 font-medium animate-pulse">Syncing your workspace...</p>
+      </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-12 relative">
-      <header className="bg-white shadow-sm sticky top-0 z-40 transition-colors">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold text-gray-800">{teacher.name}</h1>
-            <p className="text-xs text-gray-500">{teacher.department}</p>
+    <div className="min-h-screen bg-slate-50 pb-20 relative font-sans text-slate-800">
+      
+      {/* Navbar */}
+      <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-lg text-white font-bold text-lg">
+                {teacher.name.charAt(0)}
+            </div>
+            <div>
+                <h1 className="text-sm font-bold text-slate-900 leading-tight">{teacher.name}</h1>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{teacher.department}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-             <a href="mailto:abcddcba121202@gmail.com?subject=Discrepancy%20Report" className="text-xs font-bold bg-orange-50 text-orange-700 px-3 py-2 rounded-lg">Report</a>
-             <button onClick={() => handleOpenRoomFinder()} className="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg">Find Room</button>
-             {isSaving && <span className="text-xs text-indigo-500">Syncing...</span>}
-             <button onClick={onLogout} className="text-sm text-red-500 font-medium ml-1">Logout</button>
+             <button onClick={() => handleOpenRoomFinder()} className="hidden sm:flex items-center gap-1.5 text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                Find Room
+             </button>
+             {isSaving && <span className="text-xs font-bold text-indigo-500 animate-pulse">Saving...</span>}
+             <button onClick={onLogout} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+             </button>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* --- COLLAPSIBLE ABSENCE HEADER --- */}
+      {/* Alerts */}
       {absentTeachers.length > 0 && (
-        <div className="max-w-3xl mx-auto px-4 mt-2">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+        <div className="max-w-3xl mx-auto px-4 mt-4">
+            <div className="bg-red-50 border border-red-100 rounded-xl overflow-hidden shadow-sm">
                <button 
                  onClick={() => setExpandLeaves(!expandLeaves)}
-                 className="w-full flex justify-between items-center p-3 bg-red-50 text-red-800 text-xs font-bold uppercase tracking-wider hover:bg-red-100 transition-colors"
+                 className="w-full flex justify-between items-center p-3 text-red-800 text-xs font-bold uppercase tracking-wider hover:bg-red-100/50 transition-colors"
                >
                   <span className="flex items-center gap-2">
-                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                     Faculty Updates ({absentTeachers.length})
+                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                     Faculty on Leave ({absentTeachers.length})
                   </span>
-                  <svg className={`w-4 h-4 transition-transform ${expandLeaves ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <svg className={`w-4 h-4 transition-transform duration-200 ${expandLeaves ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                </button>
                
                {expandLeaves && (
-                   <div className="p-3 bg-white border-t border-red-100 animate-[fadeIn_0.2s_ease-out]">
-                       <p className="text-xs text-gray-500 mb-2">The following faculty are on leave today. Their rooms have been marked as free.</p>
+                   <div className="p-3 bg-white/50 border-t border-red-100/50">
                        <div className="flex flex-wrap gap-2">
                            {absentTeachers.map(id => (
-                               <span key={id} className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                               <span key={id} className="text-[11px] font-bold text-slate-600 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
                                    {allTeachers[id]?.name || id}
                                </span>
                            ))}
@@ -373,36 +415,65 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
       )}
 
       <main className="max-w-3xl mx-auto px-4 pt-6 space-y-6">
-        <div className="flex justify-between items-end">
+        
+        {/* Date Header */}
+        <div className="flex justify-between items-end pb-2">
           <div>
-            <p className="text-sm font-medium text-gray-500 uppercase">{getFormattedDate()}</p>
-            <h2 className="text-3xl font-bold text-gray-900">{todayName}</h2>
+            <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">{getFormattedDate()}</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">{todayName}</h2>
           </div>
-          <div className="text-right">
-             <p className="text-2xl font-mono font-medium text-indigo-600">{currentTime}</p>
+          <div className="text-right bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+             <p className="text-xl font-mono font-bold text-indigo-600 tracking-tight">{currentTime}</p>
           </div>
         </div>
 
-        <div className="flex bg-gray-200 p-1 rounded-lg">
-            <button onClick={() => setView('LIVE')} className={`flex-1 py-2 text-sm ${view === 'LIVE' ? 'bg-white shadow-sm' : ''}`}>Live</button>
-            <button onClick={() => setView('FULL_WEEK')} className={`flex-1 py-2 text-sm ${view === 'FULL_WEEK' ? 'bg-white shadow-sm' : ''}`}>Week</button>
-            <button onClick={() => setView('NOTES')} className={`flex-1 py-2 text-sm ${view === 'NOTES' ? 'bg-white shadow-sm' : ''}`}>Notes</button>
-            <button onClick={() => setView('UTILITIES')} className={`flex-1 py-2 text-sm ${view === 'UTILITIES' ? 'bg-white shadow-sm' : ''}`}>Utils</button>
+        {/* Tab Switcher */}
+        <div className="bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 flex gap-1">
+            {['LIVE', 'FULL_WEEK', 'NOTES', 'UTILITIES'].map((tab) => (
+                <button 
+                    key={tab}
+                    onClick={() => setView(tab as ViewState)} 
+                    className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide rounded-lg transition-all duration-200 ${
+                        view === tab 
+                        ? 'bg-slate-800 text-white shadow-md transform scale-[1.02]' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
+                >
+                    {tab.replace('_', ' ')}
+                </button>
+            ))}
         </div>
 
-        {view === 'LIVE' && (
-            <>
+        {/* Views */}
+        <div className="animate-fadeIn">
+            {view === 'LIVE' && (
+                <>
+                    <section>
+                    {activeClass ? <ClassCard session={activeClass} status="active" isHero={true} onEditNote={handleEditNote} onFindRoom={handleOpenRoomFinder} hasNote={false} /> :
+                    nextClass ? <ClassCard session={nextClass} status="upcoming" isHero={true} onEditNote={handleEditNote} onFindRoom={handleOpenRoomFinder} hasNote={false} /> :
+                    <div className="rounded-2xl shadow-xl p-8 bg-gradient-to-br from-slate-800 to-slate-900 text-white text-center relative overflow-hidden">
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl"></div>
+                        <h3 className="text-xl font-bold mb-2 relative z-10">All Done!</h3>
+                        <p className="text-slate-400 relative z-10">No more classes scheduled for today.</p>
+                    </div>}
+                    </section>
+                    <section className="mt-8">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 pl-1">Your Schedule</h3>
+                        {renderTimeline()}
+                    </section>
+                </>
+            )}
+            {view === 'FULL_WEEK' && renderFullWeek()}
+            {view === 'NOTES' && (
                 <section>
-                {activeClass ? <ClassCard session={activeClass} status="active" isHero={true} onEditNote={handleEditNote} onFindRoom={handleOpenRoomFinder} hasNote={false} /> :
-                 nextClass ? <ClassCard session={nextClass} status="upcoming" isHero={true} onEditNote={handleEditNote} onFindRoom={handleOpenRoomFinder} hasNote={false} /> :
-                 <div className="rounded-xl shadow-lg p-8 bg-gray-800 text-white text-center"><p>No more classes today.</p></div>}
+                    <div className="flex justify-between items-end mb-4 px-1">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">My Notes</h3>
+                    </div>
+                    {renderNotesView()}
                 </section>
-                <section><h3 className="text-gray-500 font-semibold mb-4 text-sm uppercase">Schedule</h3>{renderTimeline()}</section>
-            </>
-        )}
-        {view === 'FULL_WEEK' && renderFullWeek()}
-        {view === 'NOTES' && <section><h3 className="text-gray-500 font-semibold mb-4 text-sm uppercase">My Notes</h3>{renderNotesView()}</section>}
-        {view === 'UTILITIES' && <section><Utilities teacher={teacher} /></section>}
+            )}
+            {view === 'UTILITIES' && <section><Utilities teacher={teacher} /></section>}
+        </div>
       </main>
 
       <RoomFinderModal 
@@ -414,17 +485,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ teacher, onLogout, allTeac
         allTeachers={allTeachers}
       />
 
+      {/* Edit Note Modal */}
       {editingSession && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-                <div className="p-4 border-b flex justify-between"><h3>Edit Note</h3><button onClick={() => setEditingSession(null)}>✕</button></div>
-                <div className="p-6 space-y-4">
-                    <select value={selectedDate} onChange={handleDateChange} className="w-full border p-2 rounded">
-                        {upcomingDates.map(date => <option key={toISODate(date)} value={toISODate(date)}>{toReadableDate(date)}</option>)}
-                    </select>
-                    <textarea value={noteText} onChange={e => setNoteText(e.target.value)} className="w-full border p-2 rounded h-24" placeholder="Note text..." />
-                    <input type="url" value={noteLink} onChange={e => setNoteLink(e.target.value)} className="w-full border p-2 rounded" placeholder="Link (optional)..." />
-                    <button onClick={handleSaveNote} className="w-full bg-indigo-600 text-white py-2 rounded">Save</button>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div>
+                        <h3 className="font-bold text-slate-800 text-lg">Class Note</h3>
+                        <p className="text-xs text-slate-500 font-medium">{editingSession.subject} • {editingSession.batch}</p>
+                    </div>
+                    <button onClick={() => setEditingSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors p-1">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div className="p-6 space-y-5">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">For Date</label>
+                        <select value={selectedDate} onChange={handleDateChange} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow">
+                            {upcomingDates.map(date => <option key={toISODate(date)} value={toISODate(date)}>{toReadableDate(date)}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Note Content</label>
+                        <textarea 
+                            value={noteText} 
+                            onChange={e => setNoteText(e.target.value)} 
+                            className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow h-32 resize-none leading-relaxed" 
+                            placeholder="Type your instructions, homework, or reminders here..." 
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Resource Link (Optional)</label>
+                        <input 
+                            type="url" 
+                            value={noteLink} 
+                            onChange={e => setNoteLink(e.target.value)} 
+                            className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" 
+                            placeholder="e.g., https://drive.google.com/..." 
+                        />
+                    </div>
+                    <button onClick={handleSaveNote} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg hover:shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
+                        Save Note
+                    </button>
                 </div>
             </div>
         </div>
