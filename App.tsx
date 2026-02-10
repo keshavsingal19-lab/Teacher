@@ -1,41 +1,50 @@
 import React, { useState } from 'react';
 import { Login } from './components/Login';
 import { Dashboard } from './components/Dashboard';
-import { AppState, TeacherProfile } from './types';
+import { AdminDashboard } from './components/AdminDashboard';
+import { TEACHERS } from './functions/teacherData'; 
+import { TeacherProfile } from './types';
 
-const App: React.FC = () => {
- const [appState, setAppState] = useState<AppState>(AppState.LOGIN);
- const [currentTeacher, setCurrentTeacher] = useState<TeacherProfile | null>(null);
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUser, setCurrentUser] = useState<TeacherProfile | null>(null);
 
- const handleLogin = (teacher: TeacherProfile) => {
-   setCurrentTeacher(teacher);
-   
-   // --- DATABASE INTEGRATION START ---
-   // Save the teacher ID (passcode) to storage so the DB knows who is logged in
-   localStorage.setItem('teacherCode', teacher.id); 
-   // --- DATABASE INTEGRATION END ---
+  const handleLoginSuccess = (user: any) => {
+    if (user.isAdmin) {
+        setIsAdmin(true);
+        setIsAuthenticated(true);
+    } else {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        // Persist session
+        localStorage.setItem('teacherCode', user.id);
+    }
+  };
 
-   setAppState(AppState.DASHBOARD);
- };
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setIsAdmin(false);
+    setCurrentUser(null);
+    localStorage.removeItem('teacherCode');
+  };
 
- const handleLogout = () => {
-   setCurrentTeacher(null);
-   
-   // --- DATABASE INTEGRATION START ---
-   localStorage.removeItem('teacherCode');
-   // --- DATABASE INTEGRATION END ---
-
-   setAppState(AppState.LOGIN);
- };
-
- return (
-   <>
-     {appState === AppState.LOGIN && <Login onLogin={handleLogin} />}
-     {appState === AppState.DASHBOARD && currentTeacher && (
-       <Dashboard teacher={currentTeacher} onLogout={handleLogout} />
-     )}
-   </>
- );
-};
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {!isAuthenticated ? (
+        <Login onLoginSuccess={handleLoginSuccess} />
+      ) : isAdmin ? (
+        // cast TEACHERS to any to avoid TypeScript strict signature mismatch
+        <AdminDashboard allTeachers={TEACHERS as any} onLogout={handleLogout} />
+      ) : (
+        <Dashboard 
+          teacher={currentUser!} 
+          onLogout={handleLogout} 
+          allTeachers={TEACHERS as any} // Cast here as well for safety
+        />
+      )}
+    </div>
+  );
+}
 
 export default App;
