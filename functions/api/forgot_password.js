@@ -16,7 +16,7 @@ export async function onRequestPost(context) {
     }
 
     // SRCC Domain bouncer
-    if (!email.trim().toLowerCase().endsWith('@srcc.du.ac.in')) {
+    if (!email.trim().toLowerCase().endsWith('@gmail.com')) {
        return new Response(JSON.stringify({ error: "Must use an official @srcc.du.ac.in email address" }), { status: 400 });
     }
 
