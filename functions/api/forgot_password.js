@@ -15,7 +15,12 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "Missing information" }), { status: 400 });
     }
 
-    
+    // SRCC Domain & VIP Exception bouncer
+    const userEmail = email.trim().toLowerCase();
+    if (!userEmail.endsWith('@srcc.du.ac.in') && userEmail !== 'keshavsingal19@gmail.com') {
+       return new Response(JSON.stringify({ error: "Must use an official @srcc.du.ac.in email address" }), { status: 400 });
+    }
+
     const profile = TEACHERS[teacherId];
     if (!profile) {
         return new Response(JSON.stringify({ error: "Teacher not found" }), { status: 404 });

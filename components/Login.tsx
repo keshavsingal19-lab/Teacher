@@ -21,6 +21,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState('');
 
+  // New state for the Searchable Dropdown
+  const [teacherSearch, setTeacherSearch] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -51,7 +55,13 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
      setError('');
      setForgotMessage('');
      
-     if (!forgotTeacherId) return setError('Please select your name.');
+     if (!forgotTeacherId) return setError('Please select your name from the search list.');
+     
+     // Frontend SRCC & VIP Bouncer
+     const userEmail = forgotEmail.trim().toLowerCase();
+     if (!userEmail.endsWith('@srcc.du.ac.in') && userEmail !== 'keshavsingal19@gmail.com') {
+         return setError('Please use your official @srcc.du.ac.in email address.');
+     }
 
      setIsLoading(true);
      try {
@@ -66,6 +76,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
              setForgotMessage('If this email is valid, your temporary password has been sent! Check your inbox.');
              setForgotEmail('');
              setForgotTeacherId('');
+             setTeacherSearch('');
              setTimeout(() => setIsForgotMode(false), 5000);
          } else {
              setError(data.error || 'Failed to process request');
@@ -76,6 +87,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
          setIsLoading(false);
      }
   }
+
+  // Filter teachers based on what the user types
+  const filteredTeachers = teacherList.filter(t => 
+      t.name.toLowerCase().includes(teacherSearch.toLowerCase()) || 
+      t.department.toLowerCase().includes(teacherSearch.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
@@ -104,21 +121,52 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               </div>
             </form>
         ) : (
-            <form onSubmit={handleForgotPassword} className="space-y-5">
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Select Your Name</label>
-                    <select value={forgotTeacherId} onChange={(e) => setForgotTeacherId(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option value="">-- Choose your profile --</option>
-                        {teacherList.map(t => <option key={t.id} value={t.id}>{t.name} ({t.department})</option>)}
-                    </select>
+            <form onSubmit={handleForgotPassword} className="space-y-5 relative">
+                
+                {/* Custom Searchable Dropdown */}
+                <div className="relative">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Search Your Name</label>
+                    <input 
+                        type="text" 
+                        value={teacherSearch}
+                        onChange={(e) => {
+                            setTeacherSearch(e.target.value);
+                            setShowDropdown(true);
+                            setForgotTeacherId(''); // Clear selection if they alter the name
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // Slight delay so clicks register
+                        placeholder="Type your name..."
+                        className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    />
+                    
+                    {showDropdown && filteredTeachers.length > 0 && (
+                        <ul className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                            {filteredTeachers.map(t => (
+                                <li 
+                                    key={t.id} 
+                                    onMouseDown={() => { 
+                                        setForgotTeacherId(t.id);
+                                        setTeacherSearch(`${t.name} (${t.department})`);
+                                        setShowDropdown(false);
+                                    }}
+                                    className="px-4 py-3 hover:bg-indigo-50 cursor-pointer text-sm font-medium text-slate-700 border-b border-slate-50 last:border-0 transition-colors"
+                                >
+                                    {t.name} <span className="text-xs text-slate-400 ml-1">({t.department})</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
+
                 <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Official Email Address</label>
                     <input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="name@srcc.du.ac.in" className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
+                
                 <div className="pt-2 flex flex-col gap-3">
                     <button type="submit" disabled={isLoading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg transition-all disabled:opacity-70">{isLoading ? 'Sending...' : 'Send Temporary Password'}</button>
-                    <button type="button" onClick={() => { setIsForgotMode(false); setError(''); setForgotMessage(''); }} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3.5 rounded-xl font-bold transition-all">Back to Login</button>
+                    <button type="button" onClick={() => { setIsForgotMode(false); setError(''); setForgotMessage(''); setTeacherSearch(''); setForgotTeacherId(''); }} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-3.5 rounded-xl font-bold transition-all">Back to Login</button>
                 </div>
             </form>
         )}
