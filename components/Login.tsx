@@ -52,7 +52,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
      setForgotMessage('');
      
      if (!forgotTeacherId) return setError('Please select your name.');
-     if (!forgotEmail.trim().toLowerCase().endsWith('@srcc.du.ac.in')) return setError('Please use your official @srcc.du.ac.in email address.');
 
      setIsLoading(true);
      try {
